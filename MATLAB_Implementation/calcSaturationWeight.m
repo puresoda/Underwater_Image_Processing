@@ -6,8 +6,8 @@ if nargin < 2
 end
 
 red = input_img(:,:,1);
-blue = input_img(:,:,2);
-green = input_img(:,:,3);
+green = input_img(:,:,2);
+blue = input_img(:,:,3);
 
 % luminance_idx determines what formula to use to calculate the luminance
 % 1: Standard Relative luminance

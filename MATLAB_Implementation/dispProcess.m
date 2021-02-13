@@ -25,7 +25,7 @@ g_saliency = calcSaliencyWeight(gamma_img);
 figure; imshow(g_saliency, []); title("Gamma Saliency Weights");
 
 % Get Saturation weight on the gamma corrected image 
-g_saturation = calcSaliencyWeight(gamma_img);
+g_saturation = calcSaturationWeight(gamma_img);
 figure; imshow(g_saturation, []); title("Gamma Saturation Weights");
 
 % Aggregated gamma
@@ -33,9 +33,9 @@ g_weight = g_laplace + g_saliency + g_saturation;
 figure; imshow(g_weight, []); title("Gamma Aggregate Weight");
 
 % Apply image sharpening
-sharp_img = sharpenImage(white_img, 16, 0.25);
+% sharp_img = sharpenImage(white_img, 64, 0.5);
 % sharp_img = imadjust(white_img,[]); 
-% sharp_img = imsharpen(white_img, 'Amount', 1.8); 
+sharp_img = imsharpen(white_img, 'Amount', 3); 
 
 figure; imshow(sharp_img, []); title("Sharpened Mask Image");
 
@@ -48,7 +48,7 @@ s_saliency = calcSaliencyWeight(sharp_img);
 figure; imshow(s_saliency, []); title("Sharpened Saliency Weights");
 
 % Get Saturation weight on the sharpened image 
-s_saturation = calcSaliencyWeight(sharp_img);
+s_saturation = calcSaturationWeight(sharp_img);
 figure; imshow(s_saturation, []); title("Sharpened Saturation Weights");
 
 % Aggregated sharpened image
@@ -60,14 +60,10 @@ g_weight = (g_weight + REG_VAL)./(s_weight + g_weight + NUM_INPUTS * REG_VAL);
 s_weight = (s_weight + REG_VAL)./(s_weight + g_weight + NUM_INPUTS * REG_VAL);
 
 % Naive image fusion
-reconstructed = (4*g_weight + s_weight).*white_img;
+reconstructed = (1.5*g_weight + s_weight).*white_img;
 
 for i=1:3
     reconstructed(:,:,i) = reconstructed(:,:,i)/max(max(reconstructed(:,:,i)));
 end
-
-hsvImage = rgb2hsv(reconstructed);  %# Convert the image to HSV space
-hsvImage(:,:,2) = hsvImage(:,:,2)+ 0.09;           %# Maximize the saturation
-reconstructed = hsv2rgb(hsvImage);  %# Convert the image back to RGB space
 
 imshowpair(original_img, reconstructed, 'montage'); title("Original vs Enhanced Image");
