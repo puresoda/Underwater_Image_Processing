@@ -20,6 +20,14 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "string.h"
+#include "fatfs.h"
+#include "usb_host.h"
+
+#define STB_IMAGE_IMPLEMENTATION
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+
+#include "../../stb/stb_image.h"
+#include "../../stb/stb_image_write.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -131,6 +139,14 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
+	  int width, height, original_no_channels;
+	  int desired_no_channels = 4;
+	  unsigned char *img = stbi_load("Shapes.png", &width, &height, &original_no_channels, desired_no_channels);
+	  if(img == NULL) {
+		  printf("Error in loading the image\n");
+		  exit(1);
+	  }
+	  printf("Loaded image with a width of %dpx, a height of %dpx. The original image had %d channels, the loaded image has %d channels.\n", width, height, original_no_channels, desired_no_channels);
 
     /* USER CODE BEGIN 3 */
   }

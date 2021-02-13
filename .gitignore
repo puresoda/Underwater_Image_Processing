@@ -1,2 +1,13 @@
-stb
-.settings
+.settings/
+Debug/
+Drivers/
+Middlewares/
+stb/
+*.launch
+*.ld
+Drivers/CSMIS/
+*.a
+*.o
+*.png
+*.jpg
+*.jpeg
