@@ -60,10 +60,6 @@ g_weight = (g_weight + REG_VAL)./(s_weight + g_weight + NUM_INPUTS * REG_VAL);
 s_weight = (s_weight + REG_VAL)./(s_weight + g_weight + NUM_INPUTS * REG_VAL);
 
 % Naive image fusion
-reconstructed = (1.5*g_weight + s_weight).*white_img;
-
-for i=1:3
-    reconstructed(:,:,i) = reconstructed(:,:,i)/max(max(reconstructed(:,:,i)));
-end
+reconstructed = (g_weight + s_weight).*white_img;
 
 imshowpair(original_img, reconstructed, 'montage'); title("Original vs Enhanced Image");

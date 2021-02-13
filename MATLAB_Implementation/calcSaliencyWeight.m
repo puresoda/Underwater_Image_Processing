@@ -19,7 +19,7 @@ am = mean(mean(a));
 bm = mean(mean(b));
 
 % Calculate the actual saliency weight
-sal_weight = (l-lm).^2 + (a-am).^2 + (b-bm).^2;
+sal_weight = sqrt((l-lm).^2 + (a-am).^2 + (b-bm).^2);
 sal_weight = sal_weight/max(max(sal_weight));
 
 

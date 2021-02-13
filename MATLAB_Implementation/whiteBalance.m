@@ -25,14 +25,8 @@ bal_img(:,:,2) = norm_img(:,:,2);
 bal_img(:,:,3) = norm_img(:,:,3) + ... 
     factor*(avg_green - avg_blue)*(1-norm_img(:,:,3)).*norm_img(:,:,2);
 
-bal_img = min(max(bal_img, 0), 1);
+bal_linear = rgb2lin(bal_img);
 
-for i=1:3
-    bal_img(:,:,i) = bal_img(:,:,i) / (max(max(bal_img(:,:,i))));
-end
-
-
-
-
-
-
+percentiles = [20,50];
+illuminant = illumgray(bal_linear,percentiles);
+bal_img = chromadapt(bal_linear,illuminant,'ColorSpace','linear-rgb');

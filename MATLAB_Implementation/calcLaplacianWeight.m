@@ -9,10 +9,10 @@ end
 % 1  1   1
 % 1  -8  1
 % 1  1   1
-% % filt = ones(3);
-% % filt(2,2) = -8;
+filt = ones(3);
+filt(2,2) = -8;
 
-filt = [[1 0 1]; [0 -4 0]; [1 0 1]];
+filt = [[0.25 0.5 0.25]; [0.5 -3 0.5]; [0.25 0.5 0.25]];
 
 red = input_img(:,:,1);
 blue = input_img(:,:,2);
@@ -35,7 +35,7 @@ switch(lum_idx)
 end
 
 % Calculate the Laplacian filtered image for luminance channel
-lap_weight = abs(conv2(lum, filt, 'same'));
+lap_weight = im2double(abs(locallapfilt(im2int16(lum), 0.5, 2.0)));
 lap_weight = lap_weight/max(max(lap_weight));
 
 end
