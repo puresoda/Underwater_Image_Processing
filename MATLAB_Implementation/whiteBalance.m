@@ -27,6 +27,6 @@ bal_img(:,:,3) = norm_img(:,:,3) + ...
 
 bal_linear = rgb2lin(bal_img);
 
-percentiles = [20,50];
+percentiles = [20,80];
 illuminant = illumgray(bal_linear,percentiles);
 bal_img = chromadapt(bal_linear,illuminant,'ColorSpace','linear-rgb');

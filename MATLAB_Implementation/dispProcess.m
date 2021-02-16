@@ -9,11 +9,11 @@ original_img = im2double(imread("underwater.jpg"));
 figure; imshow(original_img); title("Original Image");
 
 % Perform the white balancing technique and show it
-white_img = whiteBalance(original_img, 1);
+white_img = whiteBalance(original_img, 1.2);
 figure; imshow(white_img); title("White Balanced Image");
 
 % Apply gamma corretion
-gamma_img = gammaCorrection(white_img, 1.7); 
+gamma_img = gammaCorrection(white_img, 1.4); 
 figure; imshow(gamma_img); title("Gamma Corrected Image");
 
 % Get Laplacian weight on the gamma corrected image
@@ -60,6 +60,12 @@ g_weight = (g_weight + REG_VAL)./(s_weight + g_weight + NUM_INPUTS * REG_VAL);
 s_weight = (s_weight + REG_VAL)./(s_weight + g_weight + NUM_INPUTS * REG_VAL);
 
 % Naive image fusion
-reconstructed = (g_weight + s_weight).*white_img;
 
+% Total weight
+t_weight = (g_weight + s_weight);
+figure; imshow(t_weight, []); title("Total Aggregate Weight");
+
+reconstructed = t_weight.*white_img;
+
+figure;
 imshowpair(original_img, reconstructed, 'montage'); title("Original vs Enhanced Image");
