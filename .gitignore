@@ -12,3 +12,4 @@ Drivers/CSMIS/
 *.jpg
 *.jpeg
 *.asv
+.vs/
