@@ -1,4 +1,4 @@
-#include "imfunc.h"
+#include "../Inc/imfunc.h"
 
 /**
 * Reciprocal Square Root Function
@@ -49,7 +49,7 @@ float calcAverage(float* image, const int num_pixels)
 * 
 * @return:              Creates a new array containing the gamma corrected image
 */
-float* correctGama(float* image, const int num_pixels, const float gamma)
+float* correctGamma(float* image, const int num_pixels, const float gamma)
 {
     const int rgb_size = 3 * num_pixels;
 
@@ -67,9 +67,31 @@ float* correctGama(float* image, const int num_pixels, const float gamma)
     return gamma_image;
 }
 
-void applyGaussianBlur(float* image, const int num_pixels)
+float* applyGaussianBlur(float* image, const int num_row, const int num_col)
 {
-    // TODO: Once the 2D Convolution function is finished, convolve "image" with this matrix (3x3)
+    // Convolve "image" with the blur matrix (3x3)
     float gaussian_filter[9] = {0.0113, 0.0838, 0.0113, 0.0838, 0.6193, 0.0838, 0.0113, 0.0838, 0.0113 };
-    return;
+
+    float* output = conv2D(image, gaussian_filter, num_row, num_col, 3);
+
+    return output;
+}
+
+float* applyLaplacian(float* image, const int num_row, const int num_col)
+{
+    // Convolve "image" with the laplacian matrix (3x3)
+    float lap_filter[9] = {-1.0, -1.0, -1.0, -1.0, 8.0, -1.0, -1.0, -1.0, -1.0};
+
+    float* output = conv2D(image, lap_filter, num_row, num_col, 3);
+
+    return output;
+}
+
+/**
+* Calculates the squared L2 norm given two points (x1, y1, z1) and (x2, y2, z2)
+* (x1-x2)^2 + (y1-y2)^2 + (z1-z2)^2
+*/
+float calcNormSquare(const float x1, const float x2, const float y1, const float y2, const float z1, const float z2)
+{
+    return (x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2) + (z1 - z2) * (z1 - z2);
 }

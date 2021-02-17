@@ -1,22 +1,24 @@
-#include "weights.h"
+#include "../Inc/weights.h"
 
-float* getWeights(float* image, const int num_pixels, const int lum_option)
+float* getWeights(float* image, const int num_row, const int num_col, const int lum_option)
 {
+	const int num_pixels = num_row * num_col;
+
 	float* lum = calcLuminance(image, num_pixels, lum_option);
 
 	// Obtain laplacian weight
-	float* w_lap = calcLaplacian(lum, num_pixels);
+	float* w_lap = calcLaplacianWeight(lum, num_row, num_col);
 	normalizeWeight(w_lap, num_pixels);
 
 	// Obtain the saturation weight
-	float* w_sat = calcSaturation(image, lum, num_pixels);
+	float* w_sat = calcSaturationWeight(image, lum, num_pixels);
 	normalizeWeight(w_sat, num_pixels);
 
 	// We no longer need the luminance matrix
 	free(lum);
 
 	// Obtain the saliency weight
-	float* w_sal = calcSaliency(image, num_pixels);
+	float* w_sal = calcSaliencyWeight(image, num_row, num_col);
 	normalizeWeight(w_sal, num_pixels);
 
 	// Aggregate the weights
@@ -27,7 +29,7 @@ float* getWeights(float* image, const int num_pixels, const int lum_option)
 	// Free more memory
 	free(w_lap);
 	free(w_sat);
-	free(w_sat);
+	free(w_sal);
 
 	return total_weight;
 }
@@ -36,18 +38,22 @@ float* getWeights(float* image, const int num_pixels, const int lum_option)
 * Calculates the laplacian weight of an image. This is calculated by applying a Laplacian filter to the luminance and taking the absolute value.
 *
 * @param:	lum			The luminance of each pixel of the original image
-* @param:	num_pixels	The size of the image
+* @param:	num_row		The number of rows of the image
+* @param:	num_row		The number of rows of the image
 *
 * @return:				Laplacian weight which is an array of size num_pixels. 
 */
-float* calcLaplacian(float* lum, const int num_pixels)
+float* calcLaplacianWeight(float* lum, const int num_row, const int num_col)
 {
-	float* w_lap = malloc(sizeof(float) * num_pixels);
+	const int num_pixels = num_row * num_col;
 
-	// Laplacian Filter must have DC value of 0
-	float lap_filter[9] = { 0.0, -1.0, 0.0, -1.0, 4.0, -1.0, 0.0, -1.0, 0.0 };
+	// Apply the Laplacian Filter
+	float* w_lap = applyLaplacian(lum, num_row, num_col);
 
-	// TODO: Import the 2D convolution function from the NN project and apply it
+	// Take the absolute value of each entry
+	for (int i = 0; i < num_pixels; i++)
+		w_lap[i] = ABS(w_lap[i]);
+
 	return w_lap;
 }
 
@@ -55,13 +61,39 @@ float* calcLaplacian(float* lum, const int num_pixels)
 * Calculates the saliency weight of an image. This is calculated by applying a Gaussian blur filter and converting to the LAB color space
 *
 * @param:	image		The image to get the saliency weight from
-* @param:	num_pixels	The size of the image
-*
+* @param:	num_row		The number of rows of the image
+* @param:	num_row		The number of rows of the image
+
 * @return:				Laplacian weight which is an array of size num_pixels.
 */
-float* calcSaliency(float* image, const int num_pixels) 
+float* calcSaliencyWeight(float* image, const int num_row, const int num_col)
 {
-	return sw;
+	const int num_pixels = num_row * num_col;
+
+	// Blur the image
+	float* blurred = applyGaussianBlur(image, num_row, num_col);
+
+	// Convert from RGB to LAB
+	float* lab = rgb2LAB(blurred, num_pixels);
+	float* l = lab;
+	float* a = &lab[num_pixels];
+	float* b = &lab[num_pixels * 2];
+
+	free(blurred);
+
+	// Calculate the average of each dimension
+	float l_avg = calcAverage(l, num_pixels);
+	float a_avg = calcAverage(a, num_pixels);
+	float b_avg = calcAverage(b, num_pixels);
+
+	// Calculate the saliency weight
+	float* sal_weight = malloc(sizeof(float) * num_pixels);
+
+	for (int i = 0; i < num_pixels; i++)
+		sal_weight[i] = sqrt(calcNormSquare(l[i], l_avg, a[i], a_avg, b[i], b_avg));
+
+	free(lab);
+	return sal_weight;
 }
 
 /**
@@ -73,7 +105,7 @@ float* calcSaliency(float* image, const int num_pixels)
 * 
 * @return:				Saturation weight which is an array of size num_pixels
 */
-float calcSaturation(float* image, float* lum, const int num_pixels)
+float* calcSaturationWeight(float* image, float* lum, const int num_pixels)
 {
 	// Create pointers to keep track of RGB indices easier
 	float* red = image;
@@ -87,7 +119,7 @@ float calcSaturation(float* image, float* lum, const int num_pixels)
 	// sqrt(1/3 * (red-lum)^2 * (green-lum)^2 * (blue-lum)^2)
 	for (int i = 0; i < num_pixels; i++)
 	{
-		sat_weight[i] = sqrt((1.0 / 3.0) * ((red[i] - lum[i]) * (red[i] - lum[i]) + (green[i] - lum[i]) * (green[i] - lum[i]) + (blue[i] - lum[i]) * (blue[i] - lum[i])));
+		sat_weight[i] = sqrt((1.0 / 3.0) * calcNormSquare(red[i], lum[i], green[i], lum[i], blue[i], lum[i]));
 	}
 
 	return sat_weight;
@@ -163,7 +195,7 @@ void normalizeWeight(float* weight, const int num_pixels)
 * 
 * @return				Allocates new memory for the LAB representation and returns a pointer to it
 */
-void rgb2LAB(float* image, const int num_pixels)
+float* rgb2LAB(float* image, const int num_pixels)
 {
 	// RGB to XYZ Conversion
 	float* xyz_image = rgb2XYZ(image, num_pixels);

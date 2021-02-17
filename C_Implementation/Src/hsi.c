@@ -1,4 +1,4 @@
-#include "hsi.h"
+#include "../Inc/hsi.h"
 
 /**
 * Converts from the Hue-Saturation-Intensity color space to the RGB color space.
@@ -11,7 +11,7 @@
 */
 float* rgb2hsi(float* rgb_image, const int num_pixels)
 {
-    float* hsi = malloc(sizeof(float) * num_pixels);
+    float* hsi = malloc(sizeof(float) * num_pixels * 3);
 
     calcHue(rgb_image, hsi, num_pixels);
     calcSaturation(rgb_image, hsi, num_pixels);
@@ -59,7 +59,7 @@ float* hsi2rgb(float* hsi, const int num_pixels)
         {
             red[i] = sector_val;
             green[i] = intensity[i] * (1.0 + sat[i] * cos(hue[i] - 120.0)) / cos(180.0 - hue[i]);
-            blue[i] = 1 - (blue[i] + red[i]);
+            blue[i] = 1 - (red[i] + green[i]);
         }
 
         // RB Sector
@@ -67,7 +67,7 @@ float* hsi2rgb(float* hsi, const int num_pixels)
         {
             green[i] = sector_val;
             blue[i] = intensity[i] * (1.0 + sat[i] * cos(hue[i] - 240.0)) / cos(300.0 - hue[i]);
-            red[i] = 1 - (blue[i] + red[i]);
+            red[i] = 1 - (green[i] + blue[i]);
         }
     }
 
@@ -111,7 +111,7 @@ void calcHue(float* rgb, float* hsi, const int num_pixels)
     for (int i = 0; i < num_pixels; i++)
     {
         num = 0.5 * ((red[i] - green[i]) + (red[i] - blue[i]));
-        rden = Q_rsqrt(red[i] - green[i]) * (red[i] - green[i]) + (red[i] - blue[i]) * (green[i] - blue[i]));
+        rden = Q_rsqrt((red[i] - green[i]) * (red[i] - green[i]) + (red[i] - blue[i]) * (green[i] - blue[i]));
         theta = acos(num * rden);
 
         hsi[i] = (blue[i] <= green[i]) ? theta : 360.0 - theta;
