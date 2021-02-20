@@ -3,12 +3,12 @@
 /**
 * Applies white balance on an image to compensate for the attenuation of the red and blue channels underwater
 *
-* @param:   image       RGB image normalized on the interval [0,1]. The image is stored as [R1 R2 R3 ..., G1 G2 G3 ..., B1 B2 B3 ...]
-* @param:   num_row     Number of rows in the image
-* @param:   num_col     Number of columns in the image
-* @param:   alpha       Multiplicative factor to control the amount of compensation (default should be 1)
+* @param   image       RGB image normalized on the interval [0,1]. The image is stored as [R1 R2 R3 ..., G1 G2 G3 ..., B1 B2 B3 ...]
+* @param   num_row     Number of rows in the image
+* @param   num_col     Number of columns in the image
+* @param   alpha       Multiplicative factor to control the amount of compensation (default should be 1)
 *
-* @return:              Modifies the original image with the correct white balance
+* @return              Modifies the original image with the correct white balance
 */
 void applyWhiteBalance(float* image, const int num_row, const int num_col, const float alpha)
 {
@@ -51,14 +51,10 @@ float* applyGreyWorld(float* image, const int num_pixels)
     float* corrected = malloc(sizeof(float) * num_channels * num_pixels);
     for (int i = 0; i < num_channels; i++)
     {
-        sum = 0;
-        for (int j = 0; j < num_pixels; j++)
-            sum += image[i * num_pixels + j];
-
-        scale_factor = sum / (float) num_pixels;
+        scale_factor = calcAverage(&image[i*num_pixels], num_pixels);
 
         for (int j = 0; j < num_pixels; j++)
-            corrected[i * num_pixels + j] = image[i * num_pixels + j] * (127.5 / scale_factor / 255.0);
+            corrected[i * num_pixels + j] = image[i * num_pixels + j] * (127.5f / scale_factor / 255.0f);
     }
 
     return corrected;
@@ -67,10 +63,10 @@ float* applyGreyWorld(float* image, const int num_pixels)
 /**
 * Linearizes RGB image to remove the gamma correction present in SRGB images.
 * 
-* @param:   image       The RGB image to linearize
-* @param:   num_pixels  The number of pixels in the image
+* @param   image       The RGB image to linearize
+* @param   num_pixels  The number of pixels in the image
 * 
-* @return:              Linearized version of the input image
+* @return              Linearized version of the input image
 */
 float* linearizeRGB(float* image, const int num_pixels)
 {
@@ -88,25 +84,25 @@ float* linearizeRGB(float* image, const int num_pixels)
 * f(u) =  {  u * c                  if 0 < u < d
 *         |  (u*a + b)^(lambda)     if u >= d
 * 
-* @param:   pixel   Pixel to be linearized
+* @param   pixel   Pixel to be linearized
 * 
-* @return:          Linearized pixel
+* @return          Linearized pixel
 */
-float linearizerHelper(float pixel)
+float linearizerHelper(const float pixel)
 {
     // Constants for linearization
-    const float a = 1.0 / 1.055;
-    const float b = 0.055 / 1.055;
-    const float c = 1.0 / 12.92;
-    const float d = 0.04045;
-    const float lambda = 2.4;
+    const float a = 1.0f / 1.055f;
+    const float b = 0.055f / 1.055f;
+    const float c = 1.0f / 12.92f;
+    const float d = 0.04045f;
+    const float lambda = 2.4f;
 
     if (pixel < 0)
-        return -1.0*linearizerHelper(ABS(pixel));
+        return -1.0f*linearizerHelper(ABS(pixel));
 
     else if (pixel >= 0 && pixel < d)
-        return(pixel * c);
+        return (pixel * c);
 
     else
-        return pow(pixel * a + b, lambda);
+        return (float) pow(pixel * a + b, lambda);
 }

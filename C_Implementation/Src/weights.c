@@ -37,11 +37,11 @@ float* getWeights(float* image, const int num_row, const int num_col, const int 
 /**
 * Calculates the laplacian weight of an image. This is calculated by applying a Laplacian filter to the luminance and taking the absolute value.
 *
-* @param:	lum			The luminance of each pixel of the original image
-* @param:	num_row		The number of rows of the image
-* @param:	num_row		The number of rows of the image
+* @param	lum			The luminance of each pixel of the original image
+* @param	num_row		The number of rows of the image
+* @param	num_row		The number of rows of the image
 *
-* @return:				Laplacian weight which is an array of size num_pixels. 
+* @return				Laplacian weight which is an array of size num_pixels. 
 */
 float* calcLaplacianWeight(float* lum, const int num_row, const int num_col)
 {
@@ -60,11 +60,11 @@ float* calcLaplacianWeight(float* lum, const int num_row, const int num_col)
 /**
 * Calculates the saliency weight of an image. This is calculated by applying a Gaussian blur filter and converting to the LAB color space
 *
-* @param:	image		The image to get the saliency weight from
-* @param:	num_row		The number of rows of the image
-* @param:	num_row		The number of rows of the image
+* @param	image		The image to get the saliency weight from
+* @param	num_row		The number of rows of the image
+* @param	num_row		The number of rows of the image
 
-* @return:				Laplacian weight which is an array of size num_pixels.
+* @return				Laplacian weight which is an array of size num_pixels.
 */
 float* calcSaliencyWeight(float* image, const int num_row, const int num_col)
 {
@@ -99,11 +99,11 @@ float* calcSaliencyWeight(float* image, const int num_row, const int num_col)
 /**
 * Calculates the saturation weight of an image. This requires the calculation of luminance which has several options.
 * 
-* @param:	image		The processed image to calculate the saturation weight of
-* @param:	lum			The luminance of each pixel of "image"
-* @param:	num_pixels	The size of the image
+* @param	image		The processed image to calculate the saturation weight of
+* @param	lum			The luminance of each pixel of "image"
+* @param	num_pixels	The size of the image
 * 
-* @return:				Saturation weight which is an array of size num_pixels
+* @return				Saturation weight which is an array of size num_pixels
 */
 float* calcSaturationWeight(float* image, float* lum, const int num_pixels)
 {
@@ -128,10 +128,10 @@ float* calcSaturationWeight(float* image, float* lum, const int num_pixels)
 /**
 * Calculates the luminance of an RGB pair. There are three options for luminance
 * 
-* @param:	image		Input to calculate the luminance of 
-* @param:	lum_option	Determines which method used to calculate luminance. 0: Standard, 1: Percieved option, 2: Percieved option exact
+* @param	image		Input to calculate the luminance of 
+* @param	lum_option	Determines which method used to calculate luminance. 0: Standard, 1: Percieved option, 2: Percieved option exact
 *
-* @return:				Calculated luminance of the given rgb pair using the specified luminance option
+* @return				Calculated luminance of the given rgb pair using the specified luminance option
 */
 float* calcLuminance(float* image, const int num_pixels, const int lum_option)
 {
@@ -168,10 +168,10 @@ float* calcLuminance(float* image, const int num_pixels, const int lum_option)
 /**
 * Normalizes the weight map to be between [0,1]
 * 
-* @param:	weight		The weight map to be normalized
-* @param:	num_pixels	The number of entries in the weight map
+* @param	weight		The weight map to be normalized
+* @param	num_pixels	The number of entries in the weight map
 * 
-* @return:				Modifies the weight map directly
+* @return				Modifies the weight map directly
 */
 void normalizeWeight(float* weight, const int num_pixels)
 {
@@ -190,7 +190,7 @@ void normalizeWeight(float* weight, const int num_pixels)
 /**
 * Converts from an RGB image to a LAB color space. This conversion requires us to convert from: RGB -> XYZ -> LAB
 * 
-* @param:	image		The RGB image to be converted
+* @param	image		The RGB image to be converted
 * @param	num_pixels	The number of pixels in the RGB image
 * 
 * @return				Allocates new memory for the LAB representation and returns a pointer to it
@@ -211,12 +211,11 @@ float* rgb2LAB(float* image, const int num_pixels)
 /**
 * Performs the conversion from the XYZ to LAB color space. 
 *
-* @param:	image		The XYZ image
-* @param:	num_pixels	The number of pixels in the image
+* @param	image		The XYZ image
+* @param	num_pixels	The number of pixels in the image
 *
-* @return:				The converted LAB image is dynamically allocated and a pointer to its first entry is returned
+* @return				The converted LAB image is dynamically allocated and a pointer to its first entry is returned
 */
-
 float* xyz2LAB(float* image, const int num_pixels)
 {
 	// Constants
@@ -258,10 +257,10 @@ float* xyz2LAB(float* image, const int num_pixels)
 * [ Y ] = [0.212671		0.715160	0.072169] * [ G ]
 * [ Z ]   [0.019334		0.119193	0.950227]   [ B ]
 * 
-* @param:	image		The RGB image
-* @param:	num_pixels	The number of pixels in the image
+* @param	image		The RGB image
+* @param	num_pixels	The number of pixels in the image
 * 
-* @return:				The converted XYZ image is dynamically allocated and a pointer to its first entry is returned
+* @return				The converted XYZ image is dynamically allocated and a pointer to its first entry is returned
 */
 float* rgb2XYZ(float* image, const int num_pixels)
 {
@@ -293,8 +292,8 @@ float* rgb2XYZ(float* image, const int num_pixels)
 * (a/b)^(1/3)				if (a/b) > 0.00856
 * 7.787*(a/b) + (16/116)	otherwise
 * 
-* @param:	a	First input
-* @param:	b	Second input
+* @param	a	First input
+* @param	b	Second input
 * 
 * @return		The result of the macro as described above
 */

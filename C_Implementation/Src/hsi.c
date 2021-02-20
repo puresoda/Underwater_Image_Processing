@@ -36,7 +36,7 @@ float* hsi2rgb(float* hsi, const int num_pixels)
     float* intensity = &hsi[2 * num_pixels];
 
     // Allocate new memory for the RGB image
-    float* rgb = malloc(sizeof(float) * num_pixels);
+    float* rgb = malloc(sizeof(float) * num_pixels * 3);
     float* red = rgb;
     float* green = &rgb[num_pixels];
     float* blue = &rgb[2 * num_pixels];
@@ -44,7 +44,7 @@ float* hsi2rgb(float* hsi, const int num_pixels)
     float sector_val;
     for (int i = 0; i < num_pixels; i++)
     {
-        sector_val = intensity[i] * (1.0 - sat[i]);
+        sector_val = intensity[i] * (1.0f - sat[i]);
 
         // RG Sector
         if (hue[i] < 120)
@@ -187,7 +187,7 @@ void calcIntensity(float* rgb, float* hsi, const int num_pixels)
 */
 float getRGBAverage(const float red, const float green, const float blue)
 {
-    return (red + green + blue) / 3.0;
+    return (red + green + blue) / 3.0f;
 }
 
 /**
@@ -201,13 +201,8 @@ float getRGBAverage(const float red, const float green, const float blue)
 */
 float getRGBMin(const float red, const float green, const float blue)
 {
-    float min = red;
-
-    if (min > blue)
-        min = blue;
-
-    if (min > green)
-        min = green;
+    float min = MIN(red,green);
+    min = MIN(min, blue);
 
     return min;
 }

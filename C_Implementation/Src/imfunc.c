@@ -4,9 +4,9 @@
 * Reciprocal Square Root Function
 * Credit to Wikipedia: https://en.wikipedia.org/wiki/Fast_inverse_square_root
 *
-* @param:   number      Input to the recipricol square root
+* @param   number      Input to the recipricol square root
 *
-* @return:              1/sqrt(number) approximation
+* @return              1/sqrt(number) approximation
 */
 float Q_rsqrt(float number)
 {
@@ -26,8 +26,8 @@ float Q_rsqrt(float number)
 /*
 * Calculate the average value of an image array.
 *
-* @param:   image       The array to average over
-* @param:   num_pixels  The number of indices to average over
+* @param   image       The array to average over
+* @param   num_pixels  The number of indices to average over
 *
 * @returns:             Returns the average (sum(image) / num_pixels)
 */
@@ -37,17 +37,17 @@ float calcAverage(float* image, const int num_pixels)
     for (int i = 0; i < num_pixels; i++)
         avg += image[i];
 
-    return (avg / num_pixels);
+    return (avg / (float) num_pixels);
 }
 
 /**
 * Applies gamma correction to an image and clips the value between [0,1].
 * 
-* @param:   image       Array containing the RGB image to apply correction to
-* @param:   num_pixels  Number of pixels in the RGB image
-* @param:   gamma       Amount of gamma correction to apply. corr_img = img^(gamma)
+* @param   image       Array containing the RGB image to apply correction to
+* @param   num_pixels  Number of pixels in the RGB image
+* @param   gamma       Amount of gamma correction to apply. corr_img = img^(gamma)
 * 
-* @return:              Creates a new array containing the gamma corrected image
+* @return              Creates a new array containing the gamma corrected image
 */
 float* correctGamma(float* image, const int num_pixels, const float gamma)
 {
@@ -57,11 +57,11 @@ float* correctGamma(float* image, const int num_pixels, const float gamma)
 
     for (int i = 0; i < rgb_size; i++)
     {
-        image[i] = pow(image[i], gamma);
+        gamma_image[i] = (float) pow(image[i], gamma);
 
         // Confine resulting value to between 0 and 1
-        image[i] = (image[i] < 0) ? 0 : image[i];
-        image[i] = (image[i] > 1) ? 1 : image[i];
+        gamma_image[i] = (gamma_image[i] < 0) ? 0 : gamma_image[i];
+        gamma_image[i] = (gamma_image[i] > 1) ? 1 : gamma_image[i];
     }
 
     return gamma_image;
@@ -75,6 +75,15 @@ float* applyGaussianBlur(float* image, const int num_row, const int num_col)
     float* output = conv2D(image, gaussian_filter, num_row, num_col, 3);
 
     return output;
+}
+
+void applyGaussianBlurRef(float* image, float* output, const int num_row, const int num_col)
+{
+    // Convolve "image" with the blur matrix (3x3)
+    float gaussian_filter[9] = { 0.0113, 0.0838, 0.0113, 0.0838, 0.6193, 0.0838, 0.0113, 0.0838, 0.0113 };
+    
+    convHelper(image, gaussian_filter, output, num_row, num_col, 3);
+    return;
 }
 
 float* applyLaplacian(float* image, const int num_row, const int num_col)

@@ -3,13 +3,13 @@
 /**
 * Create a matrix with zero padding around the edges. We allow for the input to be a non-square array but the filter must be square.
 * 
-* @param:   input           The input array that is flattened by column-row order
-* @param:   pad_mat         Array in which the padded matrix is stored. This is of size input_num_row + 2 * floor((filter_size - 1) / 2) x input_num_col + 2 * floor((filter_size - 1) / 2)
-* @param:   input_num_row   The number of rows in the input matrix
-* @param:   input_num_col   The number of columns in the input matrix
-* @param:   filter_size     The number of rows and columns of the filter. The filter must be square
+* @param   input           The input array that is flattened by column-row order
+* @param   pad_mat         Array in which the padded matrix is stored. This is of size input_num_row + 2 * floor((filter_size - 1) / 2) x input_num_col + 2 * floor((filter_size - 1) / 2)
+* @param   input_num_row   The number of rows in the input matrix
+* @param   input_num_col   The number of columns in the input matrix
+* @param   filter_size     The number of rows and columns of the filter. The filter must be square
 * 
-* @return:                  Modifies pad_mat with the padded version of input
+* @return                  Modifies pad_mat with the padded version of input
 */
 void padMatrix(float* input, float* pad_mat, const int input_num_row, const int input_num_col, const int filter_size)
 {

@@ -18,6 +18,7 @@ float Q_rsqrt(float number);
 float calcAverage(float* image, const int num_pixels);
 float* correctGamma(float* image, const int num_pixels, const float gamma);
 float* applyGaussianBlur(float* image, const int num_row, const int num_col);
+void applyGaussianBlurRef(float* image, float* output, const int num_row, const int num_col);
 float* applyLaplacian(float* image, const int num_row, const int num_col);
 float calcNormSquare(const float x1, const float x2, const float y1, const float y2, const float z1, const float z2);
 
