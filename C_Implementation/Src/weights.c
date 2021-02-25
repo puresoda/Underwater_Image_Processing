@@ -69,9 +69,13 @@ float* calcLaplacianWeight(float* lum, const int num_row, const int num_col)
 float* calcSaliencyWeight(float* image, const int num_row, const int num_col)
 {
 	const int num_pixels = num_row * num_col;
+	const int num_channels = 3;
 
 	// Blur the image
-	float* blurred = applyGaussianBlur(image, num_row, num_col);
+	float* blurred = malloc(sizeof(float) * num_pixels * num_channels);
+
+	for (int i = 0; i < num_channels; i++)
+		applyGaussianBlurRef(image, &blurred[num_pixels*i], num_row, num_col);
 
 	// Convert from RGB to LAB
 	float* lab = rgb2LAB(blurred, num_pixels);
@@ -280,7 +284,7 @@ float* rgb2XYZ(float* image, const int num_pixels)
 	{
 		x[i] = 0.412453 * red[i] + 0.357580 * green[i] + 0.180423 * blue[i];
 		y[i] = 0.212671 * red[i] + 0.715160 * green[i] + 0.072169 * blue[i];
-		z[i] - 0.019334 * red[i] + 0.119193 * green[i] + 0.950227 * blue[i];
+		z[i] = 0.019334 * red[i] + 0.119193 * green[i] + 0.950227 * blue[i];
 	}
 
 	return xyz_image;

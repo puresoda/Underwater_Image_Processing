@@ -56,8 +56,9 @@ s_weight = s_laplace + s_saliency + s_saturation;
 figure; imshow(s_weight, []); title("Sharpened Aggregate Weight");
 
 % Normalize the aggreagated weight maps
-g_weight = (g_weight + REG_VAL)./(s_weight + g_weight + NUM_INPUTS * REG_VAL);
+g_weight_temp = (g_weight + REG_VAL)./(s_weight + g_weight + NUM_INPUTS * REG_VAL);
 s_weight = (s_weight + REG_VAL)./(s_weight + g_weight + NUM_INPUTS * REG_VAL);
+g_weight = g_weight_temp;
 
 % Naive image fusion
 

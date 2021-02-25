@@ -36,28 +36,29 @@ void applyWhiteBalance(float* image, const int num_row, const int num_col, const
         blue[i] += alpha * (avg_G - avg_B) * (1 - blue[i]) * green[i];
     }
 
+    // Apply Grey World and swap out the memory from the original image
+    applyGreyWorld(image, num_pixels);
+
     return;
 }
 
 /**
 * Implements an approximation of the Grey World Approximation. The full Grey World approximation will be implemented later.
 */
-float* applyGreyWorld(float* image, const int num_pixels)
+void applyGreyWorld(float* image, const int num_pixels)
 {
     const int num_channels = 3;
     float scale_factor = 0;
-    float sum = 0;
 
-    float* corrected = malloc(sizeof(float) * num_channels * num_pixels);
     for (int i = 0; i < num_channels; i++)
     {
         scale_factor = calcAverage(&image[i*num_pixels], num_pixels);
 
         for (int j = 0; j < num_pixels; j++)
-            corrected[i * num_pixels + j] = image[i * num_pixels + j] * (127.5f / scale_factor / 255.0f);
+            image[i * num_pixels + j] = image[i * num_pixels + j] * (127.5f / scale_factor / 255.0f);
     }
 
-    return corrected;
+    return;
 }
 
 /**

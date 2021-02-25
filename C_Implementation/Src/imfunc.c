@@ -104,3 +104,78 @@ float calcNormSquare(const float x1, const float x2, const float y1, const float
 {
     return (x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2) + (z1 - z2) * (z1 - z2);
 }
+
+struct Image readImage(const char file_name[])
+{
+    FILE* image_file;
+    char file_location[100] = "./";
+    strcat_s(file_location, sizeof(file_location), file_name);
+
+    // Declare the structure to store the dimensions of the image as well as the image itself
+    struct Image im;
+    int pixel_val = 0;
+    
+    errno_t err;
+    if ((err = fopen_s(&image_file, file_location, "r")) != 0)
+    {
+        printf("File was not opened\n");
+        im.num_col = -1;
+        im.num_row = -1;
+        im.rgb_image = NULL;
+        return im;
+    }
+
+    // Read in the number of rows and columns
+    fscanf_s(image_file, "%d", &pixel_val);
+    im.num_row = pixel_val;
+
+    fscanf_s(image_file, "%d", &pixel_val);
+    im.num_col = pixel_val;
+
+    // Allocate memory for the image
+    const int num_rgb_pixels = im.num_col * im.num_col * 3;
+    im.rgb_image = malloc(sizeof(float) * num_rgb_pixels);
+
+    for (int i = 0; i < num_rgb_pixels; i++)
+    {
+        fscanf_s(image_file, "%d", &pixel_val);
+        im.rgb_image[i] = (float)(pixel_val) / 255.0f;
+    }
+
+    fclose(image_file);
+    printf("File was read successfully!\n");
+
+    return im;
+}
+
+int writeImage(const char file_name[], float* image, const int num_row, const int num_col)
+{
+    FILE* image_file;
+    char file_location[100] = "./";
+    strcat_s(file_location, sizeof(file_location), file_name);
+    strcat_s(file_location, sizeof(file_location), "_corrected.txt");
+
+    errno_t err;
+    if ((err = fopen_s(&image_file, file_location, "w")) != 0)
+    {
+        printf("File was not opened\n");
+        return -1;
+    }
+
+    // Write the number of rows and columns
+    fprintf_s(image_file, "%d\n", num_row);
+    fprintf_s(image_file, "%d\n", num_col);
+
+    // Write the actual pixels
+    const int num_rgb_pixels = num_col * num_row * 3;
+
+    for (int i = 0; i < num_rgb_pixels; i++)
+    {
+        fprintf_s(image_file, "%.6f\n", image[i]);
+    }
+
+    fclose(image_file);
+    printf("Image was written successfully!\n");
+
+    return 0;
+}

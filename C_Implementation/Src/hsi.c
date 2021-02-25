@@ -51,15 +51,15 @@ float* hsi2rgb(float* hsi, const int num_pixels)
         {
             blue[i] = sector_val;
             red[i] = intensity[i] * (1.0 + sat[i] * cos(hue[i])) / cos(60.0 - hue[i]);
-            green[i] = 1 - (blue[i] + red[i]);
+            green[i] = 1.0f - (blue[i] + red[i]);
         }
 
         // GB Sector
         else if (hue[i] >= 120 && hue[i] < 240)
         {
             red[i] = sector_val;
-            green[i] = intensity[i] * (1.0 + sat[i] * cos(hue[i] - 120.0)) / cos(180.0 - hue[i]);
-            blue[i] = 1 - (red[i] + green[i]);
+            green[i] = intensity[i] * (1.0 + sat[i] * cos(hue[i] - 120.0f)) / cos(180.0 - hue[i]);
+            blue[i] = 1.0f - (red[i] + green[i]);
         }
 
         // RB Sector
@@ -67,7 +67,7 @@ float* hsi2rgb(float* hsi, const int num_pixels)
         {
             green[i] = sector_val;
             blue[i] = intensity[i] * (1.0 + sat[i] * cos(hue[i] - 240.0)) / cos(300.0 - hue[i]);
-            red[i] = 1 - (green[i] + blue[i]);
+            red[i] = 1.0f - (green[i] + blue[i]);
         }
     }
 

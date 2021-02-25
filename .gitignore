@@ -13,3 +13,4 @@ Drivers/CSMIS/
 *.jpeg
 *.asv
 .vs/
+*_bitmap*
