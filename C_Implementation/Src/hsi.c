@@ -92,34 +92,55 @@ float* hsi2rgb(float* hsi, const int num_pixels)
     float* green = &rgb[num_pixels];
     float* blue = &rgb[2 * num_pixels];
 
-    float sector_val;
+    float primary, secondary, tertiary;
     for (int i = 0; i < num_pixels; i++)
     {
-        sector_val = (1.0f - sat[i]) / 3.0f;
+        primary = intensity[i] * sat[i];
+        secondary = primary * (1 -ABS((int)(hue[i] / 60.0) % 2 - 1));
+        tertiary = intensity[i] - primary;
 
-        // RG Sector
-        if (hue[i] < 120)
+        if (0 <= hue[i] && hue[i] < 60)
         {
-            blue[i] = sector_val;
-            red[i] = 1.0/3.0 * (1.0 + (sat[i] * cos(hue[i])) / cos(60.0 - hue[i]));
-            green[i] = 1.0 - (blue[i] + red[i]);
+            red[i] = primary + tertiary;
+            green[i] = secondary + tertiary;
+            blue[i] = tertiary;
         }
 
-        // GB Sector
-        else if (hue[i] >= 120 && hue[i] < 240)
+        else if (60 <= hue[i] && hue[i] < 120)
         {
-            red[i] = sector_val;
-            green[i] = 1.0 / 3.0 * (1.0 + (sat[i] * cos(hue[i] - 120.0)) / cos(180.0 - hue[i]));
-            blue[i] = 1.0 - (red[i] + green[i]);
+            green[i] = primary + tertiary;
+            red[i] = secondary + tertiary;
+            blue[i] = tertiary;
         }
 
-        // RB Sector
+        else if (120 <= hue[i] && hue[i] < 180)
+        {
+            green[i] = primary + tertiary;
+            blue[i] = secondary + tertiary;
+            red[i] = tertiary;
+        }
+
+        else if (180 <= hue[i] && hue[i] < 240)
+        {
+            blue[i] = primary + tertiary;
+            green[i] = secondary + tertiary;
+            red[i] = tertiary;
+        }
+
+        else if (240 <= hue[i] && hue[i] < 300)
+        {
+            blue[i] = primary + tertiary;
+            red[i] = secondary + tertiary;
+            green[i] = tertiary;
+        }
+
         else
         {
-            green[i] = sector_val;
-            blue[i] = 1.0 / 3.0 * (1.0 + (sat[i] * cos(hue[i] - 240.0)) / cos(300.0 - hue[i]));
-            red[i] = 1.0 - (green[i] + blue[i]);
+            red[i] = primary + tertiary;
+            blue[i] = secondary + tertiary;
+            green[i] = tertiary;
         }
+
     }
 
     return rgb;
