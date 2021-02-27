@@ -64,7 +64,7 @@ float* imageFusionFull(char filename[])
     printf("Finished Unsharp Mask!\n");
 
     float* sharp_weight = getWeights(sharp, rgb.num_row, rgb.num_col, LUM_OPTION);
-    printf("Finished Unsharp MaskWeight Calculation!\n");
+    printf("Finished Unsharp Mask Weight Calculation!\n");
 
     free(sharp);
 
