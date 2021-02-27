@@ -4,5 +4,7 @@
 int main()
 {
 
+	float* result = imageFusionFull("underwater_bitmap.txt");
+	free(result);
 	return 0;
 }

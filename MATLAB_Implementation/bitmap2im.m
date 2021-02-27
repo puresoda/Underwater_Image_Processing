@@ -14,7 +14,7 @@ num_col = data(2);
 % Create new image matrix
 rgb_image = zeros(num_row, num_col,1);
 
-for channel=1:1
+for channel=1:3
     for i=1:num_row
         for j=1:num_col
             rgb_image(i,j,channel) = data((i-1)*num_col + j + 1 + num_col*num_row*(channel-1));
@@ -22,6 +22,6 @@ for channel=1:1
     end
 end
 
-rgb_image = uint8(rgb_image * 255);
+rgb_image = rgb_image;
 imshow(rgb_image);
 
