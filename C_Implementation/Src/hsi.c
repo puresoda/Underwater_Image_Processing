@@ -19,7 +19,7 @@ float* rgb2hsi(float* rgb_image, const int num_pixels)
 
     float max_rgb, min_rgb;
     float delta;
-
+  
     enum color { r, g, b };
     enum color max_color;
 
@@ -99,48 +99,7 @@ float* hsi2rgb(float* hsi, const int num_pixels)
         secondary = primary * (1 -ABS((int)(hue[i] / 60.0) % 2 - 1));
         tertiary = intensity[i] - primary;
 
-        if (0 <= hue[i] && hue[i] < 60)
-        {
-            red[i] = primary + tertiary;
-            green[i] = secondary + tertiary;
-            blue[i] = tertiary;
-        }
-
-        else if (60 <= hue[i] && hue[i] < 120)
-        {
-            green[i] = primary + tertiary;
-            red[i] = secondary + tertiary;
-            blue[i] = tertiary;
-        }
-
-        else if (120 <= hue[i] && hue[i] < 180)
-        {
-            green[i] = primary + tertiary;
-            blue[i] = secondary + tertiary;
-            red[i] = tertiary;
-        }
-
-        else if (180 <= hue[i] && hue[i] < 240)
-        {
-            blue[i] = primary + tertiary;
-            green[i] = secondary + tertiary;
-            red[i] = tertiary;
-        }
-
-        else if (240 <= hue[i] && hue[i] < 300)
-        {
-            blue[i] = primary + tertiary;
-            red[i] = secondary + tertiary;
-            green[i] = tertiary;
-        }
-
-        else
-        {
-            red[i] = primary + tertiary;
-            blue[i] = secondary + tertiary;
-            green[i] = tertiary;
-        }
-
+        permuteColors(hue[i], primary, secondary, tertiary, &red[i], &green[i], &blue[i]);
     }
 
     return rgb;
@@ -192,4 +151,64 @@ float getRGBMax(const float red, const float green, const float blue)
     max_rgb = MAX(max_rgb, blue);
 
     return max_rgb;
+}
+
+/**
+* Function to correctly allocate values to RGB pixels based on the hue.
+* 
+* @param:   hue         Hue of the pixel
+* @param:   primary     First RGB value (intensity * saturation)
+* @param:   secondary   Second RGB value (intensity * saturation * (1 - | mod2(hue / 60 - 1 |)
+* @param:   tertiary    Third RGB value (intensity - primary)
+* @param:   red         Red pixel
+* @param    green       Green pixel
+* @param:   blue        Blue pixel
+* 
+* @return:              Modifies red, blue, and green pixels by reference
+*/
+void permuteColors(const float hue, const float primary, const float secondary, const float tertiary, float* red, float* green, float* blue)
+{
+    if (0 <= hue && hue < 60)
+    {
+        *red = primary + tertiary;
+        *green = secondary + tertiary;
+        *blue = tertiary;
+    }
+
+    else if (60 <= hue && hue < 120)
+    {
+        *green = primary + tertiary;
+        *red = secondary + tertiary;
+        *blue = tertiary;
+    }
+
+    else if (120 <= hue && hue < 180)
+    {
+        *green = primary + tertiary;
+        *blue = secondary + tertiary;
+        *red = tertiary;
+    }
+
+    else if (180 <= hue && hue < 240)
+    {
+        *blue = primary + tertiary;
+        *green = secondary + tertiary;
+        *red = tertiary;
+    }
+
+    else if (240 <= hue && hue < 300)
+    {
+        *blue = primary + tertiary;
+        *red = secondary + tertiary;
+        *green = tertiary;
+    }
+
+    else
+    {
+        *red = primary + tertiary;
+        *blue = secondary + tertiary;
+        *green = tertiary;
+    }
+
+    return;
 }
