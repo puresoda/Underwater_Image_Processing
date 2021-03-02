@@ -13,9 +13,59 @@ float* rgb2hsi(float* rgb_image, const int num_pixels)
 {
     float* hsi = malloc(sizeof(float) * num_pixels * 3);
 
-    calcHue(rgb_image, hsi, num_pixels);
-    calcSaturation(rgb_image, hsi, num_pixels);
-    calcIntensity(rgb_image, hsi, num_pixels);
+    float* red = rgb_image;
+    float* green = &rgb_image[num_pixels];
+    float* blue = &rgb_image[num_pixels*2];
+
+    float max_rgb, min_rgb;
+    float delta;
+    enum color {r , g, b};
+    enum color max_color;
+
+    for (int i = 0; i < num_pixels; i++)
+    {
+        // Get the minimum of the pair
+        min_rgb = getRGBMin(red[i], green[i], blue[i]);
+
+        // Get the maximum of the RGB pair
+        if (red[i] > green[i])
+        {
+            max_rgb = red[i];
+            max_color = r;
+        }
+
+        else
+        {
+            max_rgb = green[i];
+            max_color = g;
+        }
+
+        if (max_rgb < blue[i])
+        {
+            max_rgb = blue[i];
+            max_color = b;
+        }
+
+        delta = max_rgb - min_rgb;
+
+        switch (max_color)
+        {
+        case r:
+            hsi[i] = 60.0f * ((int)((green[i] - blue[i]) / (delta)) % 6);
+            break;
+
+        case g:
+            hsi[i] = 60.0f * (((blue[i] - red[i]) / (delta)) + 2.0f);
+            break;
+
+        case b:
+            hsi[i] = 60.0f * (((red[i] - green[i]) / (delta)) + 4.0f);
+            break;
+        }
+
+        hsi[i + num_pixels] = (max_rgb == 0) ? 0 : (delta / max_rgb);
+        hsi[i + 2 * num_pixels] = max_rgb;
+    }
 
     return hsi;
 }
@@ -41,139 +91,17 @@ float* hsi2rgb(float* hsi, const int num_pixels)
     float* green = &rgb[num_pixels];
     float* blue = &rgb[2 * num_pixels];
 
-    float sector_val;
+    float primary, secondary, tertiary;
     for (int i = 0; i < num_pixels; i++)
     {
-        sector_val = intensity[i] * (1.0f - sat[i]);
+        primary = intensity[i] * sat[i];
+        secondary = primary * (1 -ABS((int)(hue[i] / 60.0) % 2 - 1));
+        tertiary = intensity[i] - primary;
 
-        // RG Sector
-        if (hue[i] < 120)
-        {
-            blue[i] = sector_val;
-            red[i] = intensity[i] * (1.0 + sat[i] * cos(hue[i])) / cos(60.0 - hue[i]);
-            green[i] = 1.0f - (blue[i] + red[i]);
-        }
-
-        // GB Sector
-        else if (hue[i] >= 120 && hue[i] < 240)
-        {
-            red[i] = sector_val;
-            green[i] = intensity[i] * (1.0 + sat[i] * cos(hue[i] - 120.0f)) / cos(180.0 - hue[i]);
-            blue[i] = 1.0f - (red[i] + green[i]);
-        }
-
-        // RB Sector
-        else
-        {
-            green[i] = sector_val;
-            blue[i] = intensity[i] * (1.0 + sat[i] * cos(hue[i] - 240.0)) / cos(300.0 - hue[i]);
-            red[i] = 1.0f - (green[i] + blue[i]);
-        }
+        permuteColors(hue[i], primary, secondary, tertiary, &red[i], &green[i], &blue[i]);
     }
 
     return rgb;
-}
-
-/**
-* Calculates the hues of all pixels of a given RGB image. Assumes that rgb is a flattened RGB representation of an image
-* with all R values first, then G, and B. Assumes that hsv is a flattened HSI representation of the image with
-* all H values first, thene S, then V.
-*
-* rgb = [R1 R2 R3 ... G1 G2 G3 ... B1 B2 B3]
-* hsi = [H1 H2 H3 ... S1 S2 S3 ... I1 I2 I3]
-* 
-* @param:   rgb         The RGB image vector.
-* @param:   hsi         The HSI image vector. 
-* @param:   num_pixels  Number of pixels in the image
-* 
-* @return:              Modifies the hsi array
-*/
-void calcHue(float* rgb, float* hsi, const int num_pixels)
-{
-    float* red = rgb;
-    float* green = &rgb[num_pixels];
-    float* blue = &rgb[num_pixels * 2];
-
-    float num, rden, theta;
-
-    /*
-        Calculate the hue of each pixel which is given by the formula:
-
-                        (      (0.5*( (R - G) + (R - B) )         )
-        theta = arccos  (  -----------------------------------    )
-                        (  ((R - G)^2 + (R - B)(G - B) ))^0.5     )
-
-                    |
-                    { theta         (if B <= G)
-        Hue =       { 360 - theta   (else)
-                    |
-   */
-    for (int i = 0; i < num_pixels; i++)
-    {
-        num = 0.5 * ((red[i] - green[i]) + (red[i] - blue[i]));
-        rden = Q_rsqrt((red[i] - green[i]) * (red[i] - green[i]) + (red[i] - blue[i]) * (green[i] - blue[i]));
-        theta = acos(num * rden);
-
-        hsi[i] = (blue[i] <= green[i]) ? theta : 360.0 - theta;
-    }
-
-    return;
-}
-
-/**
-* Calculate the saturation of each pixel of an RGB image.
-*
-* rgb = [R1 R2 R3 ... G1 G2 G3 ... B1 B2 B3]
-* hsi = [H1 H2 H3 ... S1 S2 S3 ... I1 I2 I3]
-*
-* @param:   rgb         RGB image array
-* @param:   hsi         HSI image array
-* @param:   num_pixels  Number of entries in the RGB and HSI array
-*
-* @return:              Modifies the HSI array with the proper saturation values
-*/
-void calcSaturation(float* rgb, float* hsi, const int num_pixels)
-{
-    float* saturation = &hsi[num_pixels];
-    float* red = rgb;
-    float* green = &rgb[num_pixels];
-    float* blue = &rgb[num_pixels * 2];
-
-    // Saturation = 1 - 3*  min(R,G,B) / (R+G+B)
-    for (int i = 0; i < num_pixels; i++)
-    {
-        saturation[i] = 1.0 - getRGBMin(red[i], green[i], blue[i]) / getRGBAverage(red[i], green[i], blue[i]);
-    }
-
-    return;
-}
-
-/**
-* Calculate the intensity of each pixel which is simply the average of its RGB values.
-*
-* rgb = [R1 R2 R3 ... G1 G2 G3 ... B1 B2 B3]
-* hsi = [H1 H2 H3 ... S1 S2 S3 ... I1 I2 I3]
-* 
-* @param:   rgb         RGB image array
-* @param:   hsi         HSI image array
-* @param:   num_pixels  Number of entries in the RGB and HSI array
-* 
-* @return:              Modifies the HSI array with the proper intensity values
-*/
-void calcIntensity(float* rgb, float* hsi, const int num_pixels)
-{
-    float* intensity = &hsi[num_pixels * 2];
-    float* red = rgb;
-    float* green = &rgb[num_pixels];
-    float* blue = &rgb[num_pixels * 2];
-
-    // Intensity = (R+G+B) / 3
-    for (int i = 0; i < num_pixels; i++)
-    {
-        intensity[i] = getRGBAverage(red[i], green[i], blue[i]);
-    }
-
-    return;
 }
 
 /**
@@ -201,8 +129,85 @@ float getRGBAverage(const float red, const float green, const float blue)
 */
 float getRGBMin(const float red, const float green, const float blue)
 {
-    float min = MIN(red,green);
-    min = MIN(min, blue);
+    float min_rgb = MIN(red,green);
+    min_rgb = MIN(min_rgb, blue);
 
-    return min;
+    return min_rgb;
+}
+
+/**
+* Simple function to get the maximum of an RGB Pair
+*
+* @param:   red     Red value of RGB pair
+* @param:   green   Green value
+* @param:   blue    Blue value
+*
+* @return:          Maximum of the pair
+*/
+float getRGBMax(const float red, const float green, const float blue)
+{
+    float max_rgb = MAX(red, green);
+    max_rgb = MAX(max_rgb, blue);
+
+    return max_rgb;
+}
+
+/**
+* Function to correctly allocate values to RGB pixels based on the hue.
+* 
+* @param:   hue         Hue of the pixel
+* @param:   primary     First RGB value (intensity * saturation)
+* @param:   secondary   Second RGB value (intensity * saturation * (1 - | mod2(hue / 60 - 1 |)
+* @param:   tertiary    Third RGB value (intensity - primary)
+* @param:   red         Red pixel
+* @param    green       Green pixel
+* @param:   blue        Blue pixel
+* 
+* @return:              Modifies red, blue, and green pixels by reference
+*/
+void permuteColors(const float hue, const float primary, const float secondary, const float tertiary, float* red, float* green, float* blue)
+{
+    if (0 <= hue && hue < 60)
+    {
+        *red = primary + tertiary;
+        *green = secondary + tertiary;
+        *blue = tertiary;
+    }
+
+    else if (60 <= hue && hue < 120)
+    {
+        *green = primary + tertiary;
+        *red = secondary + tertiary;
+        *blue = tertiary;
+    }
+
+    else if (120 <= hue && hue < 180)
+    {
+        *green = primary + tertiary;
+        *blue = secondary + tertiary;
+        *red = tertiary;
+    }
+
+    else if (180 <= hue && hue < 240)
+    {
+        *blue = primary + tertiary;
+        *green = secondary + tertiary;
+        *red = tertiary;
+    }
+
+    else if (240 <= hue && hue < 300)
+    {
+        *blue = primary + tertiary;
+        *red = secondary + tertiary;
+        *green = tertiary;
+    }
+
+    else
+    {
+        *red = primary + tertiary;
+        *blue = secondary + tertiary;
+        *green = tertiary;
+    }
+
+    return;
 }

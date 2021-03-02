@@ -158,7 +158,7 @@ int writeImage(const char file_name[], float* image, const int num_row, const in
     errno_t err;
     if ((err = fopen_s(&image_file, file_location, "w")) != 0)
     {
-        printf("File was not opened\n");
+        printf("File could be written to.\n");
         return -1;
     }
 

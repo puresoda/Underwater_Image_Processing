@@ -25,8 +25,6 @@ float* applyUnsharpMask(float* image, const int num_row, const int num_col)
 	for (int i = 0; i < num_channels; i++)
 		applyGaussianBlurRef(&image[num_pixels * i], &blurred[num_pixels * i], num_row, num_col);
 
-	writeImage("underwater_bitmap", blurred, num_row, num_col);
-
 	for (int i = 0; i < num_rgb_pixels; i++)
 		blurred[i] = image[i] - blurred[i];
 

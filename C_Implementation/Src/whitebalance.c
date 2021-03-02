@@ -55,7 +55,7 @@ void applyGreyWorld(float* image, const int num_pixels)
         scale_factor = calcAverage(&image[i*num_pixels], num_pixels);
 
         for (int j = 0; j < num_pixels; j++)
-            image[i * num_pixels + j] = image[i * num_pixels + j] * (127.5f / scale_factor / 255.0f);
+            image[i * num_pixels + j] *=  (127.5f / scale_factor / 255.0f);
     }
 
     return;

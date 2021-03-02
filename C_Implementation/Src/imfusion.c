@@ -48,15 +48,24 @@ float* imageFusionFull(char filename[])
     // White Balance 
     applyWhiteBalance(rgb.rgb_image, rgb.num_row, rgb.num_col, 1);
     float* white = rgb.rgb_image;
+    printf("Finished White Balance!\n");
 
     // Gamma weights 
     float* gamma = correctGamma(white, num_pixels, 1.4);
+    printf("Finished Gamma Correction!\n");
+
     float* gamma_weight = getWeights(gamma, rgb.num_row, rgb.num_col, LUM_OPTION);
+    printf("Finished Gamma Weight Calculation!\n");
+
     free(gamma);
 
     // Sharpening Weigths
     float* sharp = applyUnsharpMask(white, rgb.num_row, rgb.num_col);
+    printf("Finished Unsharp Mask!\n");
+
     float* sharp_weight = getWeights(sharp, rgb.num_row, rgb.num_col, LUM_OPTION);
+    printf("Finished Unsharp Mask Weight Calculation!\n");
+
     free(sharp);
 
     float* reconstructed = applyFusion(white, gamma_weight, sharp_weight, rgb.num_row, rgb.num_col);
