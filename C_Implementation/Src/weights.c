@@ -281,9 +281,9 @@ float* rgb2XYZ(float* image, const int num_pixels)
 	// Flattened out matrix operation to convert
 	for (int i = 0; i < num_pixels; i++)
 	{
-		x[i] = 0.412453 * red[i] + 0.357580 * green[i] + 0.180423 * blue[i];
-		y[i] = 0.212671 * red[i] + 0.715160 * green[i] + 0.072169 * blue[i];
-		z[i] = 0.019334 * red[i] + 0.119193 * green[i] + 0.950227 * blue[i];
+		x[i] = 0.412453f * red[i] + 0.357580f * green[i] + 0.180423f * blue[i];
+		y[i] = 0.212671f * red[i] + 0.715160f * green[i] + 0.072169f * blue[i];
+		z[i] = 0.019334f * red[i] + 0.119193f * green[i] + 0.950227f * blue[i];
 	}
 
 	return xyz_image;
@@ -320,6 +320,11 @@ float* xyz2rgb(float* image, const int num_pixels)
 		red[i] =    3.2404542 * x[i] - 1.5371385 * y[i] - 0.4985314 * z[i];
 		green[i] = -0.9692660 * x[i] + 1.8760108 * y[i] + 0.0415560 * z[i];
 		blue[i] =   0.0556434 * x[i] - 0.2040259 * y[i] + 1.0572252 * z[i];
+
+		red[i] = ABS(red[i]);
+		green[i] = ABS(green[i]);
+		blue[i] = ABS(blue[i]);
+
 	}
 
 	return rgb;

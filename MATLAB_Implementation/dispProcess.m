@@ -9,7 +9,7 @@ original_img = im2double(imread("underwater.jpg"));
 figure; imshow(original_img); title("Original Image");
 
 % Perform the white balancing technique and show it
-white_img = whiteBalance(original_img, 1.2);
+white_img = whiteBalance(original_img, 1);
 figure; imshow(white_img); title("White Balanced Image");
 
 % Apply gamma corretion
