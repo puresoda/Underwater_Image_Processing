@@ -10,7 +10,7 @@
 *
 * @return              Modifies the original image with the correct white balance
 */
-void applyWhiteBalance(float* image, const int num_row, const int num_col, const float alpha)
+float* applyWhiteBalance(float* image, const int num_row, const int num_col, const float alpha)
 {
     const int num_pixels = num_row * num_col;
 
@@ -37,9 +37,10 @@ void applyWhiteBalance(float* image, const int num_row, const int num_col, const
     }
 
     // Apply Grey World and swap out the memory from the original image
-    applyGreyWorld(image, num_pixels);
+    float* corrected = applyGreyWorldFull(image, num_pixels, 20);
+    //applyGreyWorld(image, num_pixels);
 
-    return;
+    return corrected;
 }
 
 /**
@@ -47,10 +48,9 @@ void applyWhiteBalance(float* image, const int num_row, const int num_col, const
 */
 void applyGreyWorld(float* image, const int num_pixels)
 {
-    const int num_channels = 3;
     float scale_factor = 0;
 
-    for (int i = 0; i < num_channels; i++)
+    for (int i = 0; i < NUM_CHANNELS; i++)
     {
         scale_factor = calcAverage(&image[i*num_pixels], num_pixels);
 
@@ -69,13 +69,14 @@ void applyGreyWorld(float* image, const int num_pixels)
 * 
 * @return              Linearized version of the input image
 */
-float* linearizeRGB(float* image, const int num_pixels)
+void linearizeRGB(float* image, const int num_pixels)
 {
-    float* linearized = malloc(sizeof(float) * num_pixels);
-    for (int i = 0; i < num_pixels; i++)
-        linearized[i] = linearizerHelper(image[i]);
+    const int num_rgb = num_pixels * NUM_CHANNELS;
 
-    return linearized;
+    for (int i = 0; i < num_rgb; i++)
+        image[i] = linearizerHelper(image[i]);
+
+    return;
 }
 
 /**
@@ -107,3 +108,203 @@ float linearizerHelper(const float pixel)
     else
         return (float) pow(pixel * a + b, lambda);
 }
+
+float* applyGreyWorldFull(float* image, const int num_pixels, const int percentile)
+{
+    // Reference XYZ White Trismus Values for D65 Illuminant
+    const float TARGET_WHITE[3] = { 0.95047,	1.00000,	1.08883 };
+
+    // Constant Bradford matrices used to calculate the final transformation matrices
+    const float bradford[9] = {
+        0.8951000, 0.266400, -0.161400,
+        -0.750200, 1.7135000, 0.0367000,
+        0.0389000, -0.0685000, 1.0296000 };
+
+    const float bradford_inv[9] = {
+        0.9869929, -0.1470543, 0.1599627,
+        0.4323053, 0.5183603, 0.0492912,
+        -0.0085287, 0.0400428, 0.9684867 };
+
+    // Convert the image to Linear RGB, then to XYZ
+    linearizeRGB(image, num_pixels);
+    float* xyz_image = rgb2XYZ(image, num_pixels);
+    float* x = &xyz_image[0];
+    float* y = &xyz_image[num_pixels];
+    float* z = &xyz_image[num_pixels * 2];
+
+    // Calculate the illuminant of the linearized RGB image
+    float* illuminants = calcIlluminantRGB(image, num_pixels, percentile);
+    illuminants[0] = 0.8017027977257660;
+    illuminants[1] = 1;
+    illuminants[2] = 0.642720796830038;
+
+    // Calculate the cone values ie: bradford(3x3) * (x, y, z)^T
+    float* source_cone = multiplyFlatMatrix(bradford, illuminants, NUM_CHANNELS, NUM_CHANNELS, NUM_CHANNELS, 1);
+    float* target_cone = multiplyFlatMatrix(bradford, TARGET_WHITE, NUM_CHANNELS, NUM_CHANNELS, NUM_CHANNELS, 1);
+
+    /*
+    Construct the middle diagonal matrix:
+    
+     source_cone[0] / target_cone[0]              0                                       0
+                  0                   source_cone[1] / target_cone[1]                     0
+                  0                               0                           source_cone[2] / target_cone[2]
+    */
+    float* diag = calloc(NUM_CHANNELS * NUM_CHANNELS, sizeof(float));
+    for (int i = 0; i < NUM_CHANNELS; i++)
+        diag[4 * i] = target_cone[i] / source_cone[i];
+    
+    // Free the cone data
+    free(source_cone);
+    free(target_cone);
+
+    // Get the entire transofrmation matrix
+    float* intermediate = multiplyFlatMatrix(bradford_inv, diag, NUM_CHANNELS, NUM_CHANNELS, NUM_CHANNELS, NUM_CHANNELS);
+    free(diag);
+    float* transformation = multiplyFlatMatrix(intermediate, bradford, NUM_CHANNELS, NUM_CHANNELS, NUM_CHANNELS, NUM_CHANNELS);
+    free(intermediate);
+
+    // Apply the transformation to each XYZ pair
+    float xyz_pair[NUM_CHANNELS];
+    float trans_xyz[NUM_CHANNELS];
+
+    for (int i = 0; i < num_pixels; i++)
+    {
+        // Load in the XYZ pair
+        xyz_pair[0] = x[i];
+        xyz_pair[1] = y[i];
+        xyz_pair[2] = z[i];
+
+        // Reset the output
+        trans_xyz[0] = trans_xyz[1] = trans_xyz[2] = 0;
+
+        multiplyFlatMatrixRef(transformation, xyz_pair, trans_xyz, NUM_CHANNELS, NUM_CHANNELS, NUM_CHANNELS, 1);
+
+        // Load the result back into the original XYZ matrix
+        // There's definitely a better way to do this
+        x[i] = trans_xyz[0];
+        y[i] = trans_xyz[1];
+        z[i] = trans_xyz[2];
+    }
+
+    free(transformation);
+
+    float* output = xyz2rgb(xyz_image, num_pixels);
+    free(xyz_image);
+
+    return output;
+}
+
+float calcIlluminant(float* image, const int num_pixels, const int percentile)
+{
+
+    // Create the historgram of RGB values
+    int* histogram = calloc(NUM_BINS, sizeof(int));
+    int* cum_sum_forward = calloc(NUM_BINS, sizeof(int));
+    int* cum_sum_backward = calloc(NUM_BINS, sizeof(int));
+
+    const double step = 1.0 / (NUM_BINS);
+    int idx_high = -1;
+    int idx_low = -1;
+
+    // Loop thorugh all pixel values, note that we multiply by 255 to get an integer representaton
+    for (int i = 0; i < num_pixels; i++)
+    {
+        histogram[(int)(image[i] / step) % (NUM_BINS)]++;
+    }
+
+    // Thresholds to determine the mask
+    float low_threshold = num_pixels * percentile / 100.0f;
+    float high_threshold = num_pixels * (100.0f - percentile) / 100.0f;
+
+    // Initialize the values of the indexes that satisfy the thershold requirement
+    cum_sum_forward[0] = histogram[0];
+    cum_sum_backward[0] = histogram[(NUM_BINS) - 1];
+
+    if (cum_sum_forward[0] > low_threshold)
+        idx_low = 0;
+
+    if (cum_sum_backward[0] > high_threshold)
+        idx_high = 0;
+
+    // Loop through the histogram
+    // Get the cumulative sum going forward and backwards
+    for (int i = 1; i < (NUM_BINS); i++)
+    {
+        // Calculate the cumulative sums and update the indexes
+        cum_sum_forward[i] = cum_sum_forward[i - 1] + histogram[i];
+        cum_sum_backward[i] = cum_sum_backward[i - 1] + histogram[(NUM_BINS) - i];
+
+        if (idx_low == -1 && cum_sum_forward[i] > low_threshold)
+            idx_low = i;
+
+        if (idx_high == -1 && cum_sum_backward[i] > high_threshold)
+            idx_high = ((NUM_BINS)-i);
+    }
+
+    // Get the L1 norm of the pixels within our new range
+    float eps = 1e-3;
+    float sum = 0;
+    int count = 0;
+
+    for (int i = 0; i < num_pixels; i++)
+    {
+        if (image[i] <= (3.0/2*step)*idx_high + eps && image[i] >= (3.0 / 2 * step)* idx_low - eps)
+        {
+            sum += ABS(image[i]);
+            count++;
+        }
+    }
+
+    free(histogram);
+    free(cum_sum_backward);
+    free(cum_sum_forward);
+
+    if (count == 0)
+        return 0;
+    else
+        return (sum / count);
+}
+
+float* calcIlluminantRGB(float* image, const int num_pixels, const int percentile)
+{
+    // Since we pass this as a return value, it needs to be static... I learned this the hard way.
+    static float illuminants[NUM_CHANNELS] = { 0 };
+
+    for (int i = 0; i < NUM_CHANNELS; i++)
+        illuminants[i] = calcIlluminant(&image[i * num_pixels], num_pixels, percentile);
+
+    return illuminants;
+}
+
+float* multiplyFlatMatrix(float* left_mat, float* right_mat, const int left_num_row, const int left_num_col, const int right_num_row, const int right_num_col)
+{
+    // Allocate memory for the output and perform the multiplication
+    float* output = calloc(left_num_row * right_num_col, sizeof(float));
+
+    if (multiplyFlatMatrixRef(left_mat, right_mat, output, left_num_row, left_num_col, right_num_row, right_num_col) != 0)
+    {
+        free(output);
+        output = NULL;
+    }
+
+    return output;
+}
+
+int multiplyFlatMatrixRef(float* left_mat, float* right_mat, float* output, const int left_num_row, const int left_num_col, const int right_num_row, const int right_num_col)
+{
+    // Sanity check to make sure matrix multiplication is valid
+    if (left_num_col != right_num_row)
+    {
+        printf("Dimension error in matrix multipliation! Please check the dimensions and try again.");
+        return -1;
+    }
+
+    // Perform the matrix multiplication
+    for (int i = 0; i < left_num_row; i++)
+        for (int j = 0; j < left_num_col; j++)
+            for (int k = 0; k < right_num_col; k++)
+                output[i * right_num_col + k] += left_mat[i * left_num_col + j] * right_mat[j * right_num_col + k];
+
+    return 0;
+}
+

@@ -179,3 +179,114 @@ int writeImage(const char file_name[], float* image, const int num_row, const in
 
     return 0;
 }
+
+//struct Image readImageParallel(const char base_file_name[])
+//{
+//    char* prefixes[3] = { "red_" , "green_" , "blue_" };
+//
+//    FILE* image_files[3];
+//    char* file_locations[3][100] = { "./", "./", "./" };
+//
+//    // Test out the read on the red image
+//    strcat_s(file_locations[0], sizeof(file_locations[0]), prefixes[0]);
+//    strcat_s(file_locations[0], sizeof(file_locations[0]), base_file_name);
+//    strcat_s(file_locations[0], sizeof(file_locations[0]), ".txt");
+//
+//    // Allocate memory to store the RGB image
+//    // Note that we will take the dimensions from the first file and check that they match the rest of the files
+//    struct Image im;
+//    int pixel_val = 0;
+//
+//    errno_t err;
+//    if ((err = fopen_s(&image_files[0], file_locations[0], "r")) != 0)
+//    {
+//        printf("Red image file was not opened\n");
+//        im.num_col = -1;
+//        im.num_row = -1;
+//        im.rgb_image = NULL;
+//        return im;
+//    }
+//
+//    // Read in the number of rows and columns
+//    fscanf_s(image_files[0], "%d", &pixel_val);
+//    im.num_row = pixel_val;
+//
+//    fscanf_s(image_files[0], "%d", &pixel_val);
+//    im.num_col = pixel_val;
+//
+//    fclose(image_files[0]);
+//
+//    // Allocate memory for the image
+//    const int num_pixels = im.num_col * im.num_col;
+//    const int num_rgb_pixels = num_pixels * 3;
+//    im.rgb_image = malloc(sizeof(float) * num_rgb_pixels);
+//
+//    // Construct the threads and arguments
+//    pthread_t thread_id[READ_THREADS];
+//    struct arg_struct args[3];
+//
+//    for (int i = 0; i < READ_THREADS; i++)
+//    {
+//        // Open the file for each thread before calling the thread
+//        strcat_s(file_locations[i], sizeof(file_locations[i]), prefixes[i]);
+//        strcat_s(file_locations[i], sizeof(file_locations[i]), base_file_name);
+//        strcat_s(file_locations[i], sizeof(file_locations[i]), ".txt");
+//
+//        if ((err = fopen_s(&image_files[i], file_locations[i], "r")) != 0)
+//        {
+//            printf("File %d was not opened\n", i);
+//            return im;
+//        }
+//
+//        // Create the argument struct
+//        args[i].check_num_col = im.num_col;
+//        args[i].check_num_row = im.num_row;
+//        args[i].id = i;
+//        args[i].image_file = &image_files[i];
+//        args[i].output = &im.rgb_image[i * num_pixels];
+//
+//        // Create the thread for the R, G, and B images
+//        pthread_create(&thread_id[i], NULL, &readSingleChannel, (void*)&args[i]);
+//    }
+//
+//    // Wait for the threads to finish
+//    for (int i = 0; i < READ_THREADS; i++)
+//        pthread_join(thread_id[i], NULL);
+//
+//    return im;
+//}
+//
+//void readSingleChannel(void* vargs)
+//{
+//    // Cast void argument into the correct structure
+//    struct arg_struct* args = (struct arg_struct*)vargs;
+//
+//    // Declare the structure to store the dimensions of the image as well as the image itself
+//    int pixel_val = 0;
+//
+//    // Read in the number of rows and columns
+//    fscanf_s(args->image_file, "%d", &pixel_val);
+//    const int num_row = pixel_val;
+//
+//    fscanf_s(args->image_file, "%d", &pixel_val);
+//    const int num_col = pixel_val;
+//    
+//    if (num_row != args->check_num_row || num_col != args->check_num_col)
+//    {
+//        printf("Image dimensions of file %d did not match between input text files! Please check and try again.\n", args->id);
+//        return;
+//    }
+//
+//    const int num_pixels = num_row * num_col;
+//
+//    for (int i = 0; i < num_pixels; i++)
+//    {
+//        fscanf_s(args->image_file, "%d", &pixel_val);
+//        args->output[i] = (float)(pixel_val) / 255.0f;
+//    }
+//
+//    fclose(args->image_file);
+//    printf("File %d was read successfully!\n", args->id);
+//
+//    return;
+//}

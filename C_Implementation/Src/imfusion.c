@@ -39,19 +39,18 @@ void normalizeFusionWeights(float* gamma_weight, float* sharp_weight, const int 
     return;
 }
 
-float* imageFusionFull(char filename[])
+float* imageFusionSeqFull(char filename[])
 {
     // Read in the file
     struct Image rgb = readImage(filename);
     const int num_pixels = rgb.num_row * rgb.num_col;
 
     // White Balance 
-    applyWhiteBalance(rgb.rgb_image, rgb.num_row, rgb.num_col, 1);
-    float* white = rgb.rgb_image;
+    float* white = applyWhiteBalance(rgb.rgb_image, rgb.num_row, rgb.num_col, 1);
     printf("Finished White Balance!\n");
 
     // Gamma weights 
-    float* gamma = correctGamma(white, num_pixels, 1.4);
+    float* gamma = correctGamma(white, num_pixels, 1.2);
     printf("Finished Gamma Correction!\n");
 
     float* gamma_weight = getWeights(gamma, rgb.num_row, rgb.num_col, LUM_OPTION);

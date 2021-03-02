@@ -18,6 +18,7 @@ float* getWeights(float* image, const int num_row, const int num_col, const int 
 float* rgb2LAB(float* image, const int num_pixels);
 float* xyz2LAB(float* image, const int num_pixels);
 float* rgb2XYZ(float* image, const int num_pixels);
+float* xyz2rgb(float* image, const int num_pixels);
 float labFunction(const float a, const float b);
 
 #endif

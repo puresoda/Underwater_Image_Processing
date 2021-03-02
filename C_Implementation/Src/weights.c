@@ -69,12 +69,11 @@ float* calcLaplacianWeight(float* lum, const int num_row, const int num_col)
 float* calcSaliencyWeight(float* image, const int num_row, const int num_col)
 {
 	const int num_pixels = num_row * num_col;
-	const int num_channels = 3;
 
 	// Blur the image
-	float* blurred = malloc(sizeof(float) * num_pixels * num_channels);
+	float* blurred = malloc(sizeof(float) * num_pixels * NUM_CHANNELS);
 
-	for (int i = 0; i < num_channels; i++)
+	for (int i = 0; i < NUM_CHANNELS; i++)
 		applyGaussianBlurRef(image, &blurred[num_pixels*i], num_row, num_col);
 
 	// Convert from RGB to LAB
@@ -274,7 +273,7 @@ float* rgb2XYZ(float* image, const int num_pixels)
 	float* blue = &image[num_pixels * 2];
 
 	// RGB to XYZ Conversion
-	float* xyz_image = malloc(sizeof(float) * num_pixels * 3);
+	float* xyz_image = malloc(sizeof(float) * num_pixels * NUM_CHANNELS);
 	float* x = xyz_image;
 	float* y = &xyz_image[num_pixels];
 	float* z = &xyz_image[num_pixels * 2];
@@ -282,12 +281,53 @@ float* rgb2XYZ(float* image, const int num_pixels)
 	// Flattened out matrix operation to convert
 	for (int i = 0; i < num_pixels; i++)
 	{
-		x[i] = 0.412453 * red[i] + 0.357580 * green[i] + 0.180423 * blue[i];
-		y[i] = 0.212671 * red[i] + 0.715160 * green[i] + 0.072169 * blue[i];
-		z[i] = 0.019334 * red[i] + 0.119193 * green[i] + 0.950227 * blue[i];
+		x[i] = 0.412453f * red[i] + 0.357580f * green[i] + 0.180423f * blue[i];
+		y[i] = 0.212671f * red[i] + 0.715160f * green[i] + 0.072169f * blue[i];
+		z[i] = 0.019334f * red[i] + 0.119193f * green[i] + 0.950227f * blue[i];
 	}
 
 	return xyz_image;
+}
+
+/**
+* Performs the conversion from the XYZ to RGB color space. This can be achieved using the following matrix operation:
+*
+* [ R ]   [ 3.2404542	-1.5371385		-0.4985314]   [ X ]
+* [ G ] = [-0.9692660	 1.8760108		 0.0415560] * [ Y ]
+* [ B ]   [ 0.0556434	-0.2040259		 1.0572252]   [ Z ]
+*
+* @param	image		The XYZ image
+* @param	num_pixels	The number of pixels in the image
+*
+* @return				The converted RGB image is dynamically allocated and a pointer to its first entry is returned
+*/
+float* xyz2rgb(float* image, const int num_pixels)
+{
+	// Helper pointers to RGB
+	float* x = image;
+	float* y = &image[num_pixels];
+	float* z = &image[num_pixels * 2];
+
+	// RGB to XYZ Conversion
+	float* rgb = malloc(sizeof(float) * num_pixels * NUM_CHANNELS);
+	float* red = rgb;
+	float* green = &rgb[num_pixels];
+	float* blue = &rgb[num_pixels * 2];
+
+	// Flattened out matrix operation to convert
+	for (int i = 0; i < num_pixels; i++)
+	{
+		red[i] =    3.2404542 * x[i] - 1.5371385 * y[i] - 0.4985314 * z[i];
+		green[i] = -0.9692660 * x[i] + 1.8760108 * y[i] + 0.0415560 * z[i];
+		blue[i] =   0.0556434 * x[i] - 0.2040259 * y[i] + 1.0572252 * z[i];
+
+		red[i] = ABS(red[i]);
+		green[i] = ABS(green[i]);
+		blue[i] = ABS(blue[i]);
+
+	}
+
+	return rgb;
 }
 
 /**
