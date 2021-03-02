@@ -19,9 +19,9 @@ float* rgb2hsi(float* rgb_image, const int num_pixels)
 
     float max_rgb, min_rgb;
     float delta;
-    enum color max_color;
-    enum color {r , g, b};
 
+    enum color { r, g, b };
+    enum color max_color;
 
     for (int i = 0; i < num_pixels; i++)
     {

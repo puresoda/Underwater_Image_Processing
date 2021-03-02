@@ -3,8 +3,8 @@
 
 int main()
 {
-
-	float* result = imageFusionFull("underwater_bitmap.txt");
+	float* result = imageFusionSeqFull("underwater_bitmap.txt");
 	free(result);
+
 	return 0;
 }

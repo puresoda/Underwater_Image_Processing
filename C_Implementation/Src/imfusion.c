@@ -39,7 +39,7 @@ void normalizeFusionWeights(float* gamma_weight, float* sharp_weight, const int 
     return;
 }
 
-float* imageFusionFull(char filename[])
+float* imageFusionSeqFull(char filename[])
 {
     // Read in the file
     struct Image rgb = readImage(filename);
@@ -49,6 +49,8 @@ float* imageFusionFull(char filename[])
     applyWhiteBalance(rgb.rgb_image, rgb.num_row, rgb.num_col, 1);
     float* white = rgb.rgb_image;
     printf("Finished White Balance!\n");
+
+    writeImage("underwater_bitmap", rgb.rgb_image, rgb.num_row, rgb.num_col);
 
     // Gamma weights 
     float* gamma = correctGamma(white, num_pixels, 1.4);

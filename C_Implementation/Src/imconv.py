@@ -9,7 +9,7 @@ def im2bitmap(filename):
 
     ydim = data.shape[0]
     xdim = data.shape[1]
-    num_channels = data.shape[2]
+    num_channels= data.shape[2]
 
     # Write the pixels to a text file
     f = open(filename + "_bitmap.txt", "w")

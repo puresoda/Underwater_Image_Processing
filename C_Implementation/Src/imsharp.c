@@ -16,17 +16,22 @@ float* applyUnsharpMask(float* image, const int num_row, const int num_col)
 {
 	// Calculate some constants to be used in the algorithm
 	const int num_pixels = num_row * num_col;
-	const int num_channels = 3;
-	const int num_rgb_pixels = num_pixels * num_channels;
+	const int num_rgb_pixels = num_pixels * NUM_CHANNELS;
 
 	// Apply Gaussian Blur and subtract from the original image
 	float* blurred = malloc(sizeof(float) * num_rgb_pixels);
 
-	for (int i = 0; i < num_channels; i++)
+	for (int i = 0; i < NUM_CHANNELS; i++)
 		applyGaussianBlurRef(&image[num_pixels * i], &blurred[num_pixels * i], num_row, num_col);
 
+	// Subtract the blur from the orignal image
+	// Note that the ABS macro only works on a single variable, not an expression...
+	float temp = 0;
 	for (int i = 0; i < num_rgb_pixels; i++)
-		blurred[i] = image[i] - blurred[i];
+	{
+		temp = image[i] - blurred[i];
+		blurred[i] = ABS(temp);
+	}
 
 	// Convert to HSI to apply histogram equalization
 	float* hsi_image = rgb2hsi(blurred, num_pixels);
@@ -59,27 +64,27 @@ float* applyUnsharpMask(float* image, const int num_row, const int num_col)
 void histogramEqualization(float* intensity, const int num_pixels)
 {
 	// Create the historgram of RGB values
-	int* histogram = calloc(256, sizeof(int)) ;
-	int* new_grey = malloc(sizeof(int) * 256);
+	int histogram[256] = { 0 };
+	int new_grey[256] = { 0 };
 	int cum_sum = 0;
 
 	// Loop thorugh all pixel values, note that we multiply by 255 to get an integer representaton
-	for (int i = 0; i < 256; i++)
-		histogram[(int)(intensity[i] * 255) % 256]++;
+	for (int i = 0; i < num_pixels; i++)
+	{
+		histogram[(int)(intensity[i] * 255.0f) % 256]++;
+	}
 
 	// Calculate the new grey values to assign
 	// New grey value the cumulitive probability at that point normalized to [0,255]
 	for (int i = 0; i < 256; i++)
 	{
 		cum_sum += histogram[i];
-		new_grey[i] = round(((float)cum_sum) * 255.0f / num_pixels);
+		new_grey[i] = (int) (((float)cum_sum) * 255.0f / num_pixels);
 	}
 
 	// Assign the new pixels
 	for (int i = 0; i < num_pixels; i++)
 		intensity[i] = (float) new_grey[(int)(intensity[i] * 255) % 256] / 255.0f;
 
-	free(histogram);
-	free(new_grey);
 	return;
 }
