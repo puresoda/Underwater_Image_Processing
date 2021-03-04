@@ -6,6 +6,7 @@
 #define LUM_OPTION 1
 
 // Standard includes
+#include <time.h>
 #include "imsharp.h"
 #include "weights.h"
 #include "whitebalance.h"
