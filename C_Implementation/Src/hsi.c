@@ -3,10 +3,10 @@
 /**
 * Converts from the Hue-Saturation-Intensity color space to the RGB color space.
 *
-* @param:   rgb_image   The RGB image array stored in the form [R1 R2... G1 G2... B1 B2...]
-* @param:   num_pixels  The number of pixels in the RGB image
+* @param    rgb_image   The RGB image array stored in the form [R1 R2... G1 G2... B1 B2...]
+* @param    num_pixels  The number of pixels in the RGB image
 *
-* @return:              Converted HSI image in the form [R1 R2... G1 G2... B1 B2...]
+* @return               Converted HSI image in the form [R1 R2... G1 G2... B1 B2...]
 *
 */
 float* rgb2hsi(float* rgb_image, const int num_pixels)
@@ -23,43 +23,28 @@ float* rgb2hsi(float* rgb_image, const int num_pixels)
     enum color { r, g, b };
     enum color max_color;
 
+    struct rgbPacket max_data_idx;
+
     for (int i = 0; i < num_pixels; i++)
     {
-        // Get the minimum of the pair
-        min_rgb = getRGBMin(red[i], green[i], blue[i]);
+        max_data_idx = getRGBMaxIndex(red[i], green[i], blue[i]);
+        max_color = max_data_idx.max_color;
 
-        // Get the maximum of the RGB pair
-        if (red[i] > green[i])
-        {
-            max_rgb = red[i];
-            max_color = r;
-        }
-
-        else
-        {
-            max_rgb = green[i];
-            max_color = g;
-        }
-
-        if (max_rgb < blue[i])
-        {
-            max_rgb = blue[i];
-            max_color = b;
-        }
-
+        max_rgb = max_data_idx.max_rgb;
+        min_rgb = getRGBMin(red[i], blue[i], green[i]);
         delta = max_rgb - min_rgb;
-
+        
         switch (max_color)
         {
-        case r:
+        case r: 
             hsi[i] = 60.0f * ((int)((green[i] - blue[i]) / (delta)) % 6);
             break;
 
-        case g:
+        case g: 
             hsi[i] = 60.0f * (((blue[i] - red[i]) / (delta)) + 2.0f);
             break;
 
-        case b:
+        case b: 
             hsi[i] = 60.0f * (((red[i] - green[i]) / (delta)) + 4.0f);
             break;
         }
@@ -74,10 +59,10 @@ float* rgb2hsi(float* rgb_image, const int num_pixels)
 /**
 * Converts from the Hue-Saturation-Intensity color space to the RGB color space.
 *
-* @param:   hsi         The Hue-Saturation-Intensity array stored in the form [H1 H2... S1 S2... I1 I2...]
-* @param:   num_pixels  The number of pixels in the RGB image
+* @param    hsi         The Hue-Saturation-Intensity array stored in the form [H1 H2... S1 S2... I1 I2...]
+* @param    num_pixels  The number of pixels in the RGB image
 *
-* @return:              Converted RGB image in the form [R1 R2... G1 G2... B1 B2...]
+* @return               Converted RGB image in the form [R1 R2... G1 G2... B1 B2...]
 */
 float* hsi2rgb(float* hsi, const int num_pixels)
 {
@@ -108,11 +93,11 @@ float* hsi2rgb(float* hsi, const int num_pixels)
 /**
 * Simple function to get the average of an RGB Pair
 * 
-* @param:   red     Red value of RGB pair
-* @param:   green   Green value
-* @param:   blue    Blue value
+* @param    red     Red value of RGB pair
+* @param    green   Green value
+* @param    blue    Blue value
 * 
-* @return:          Average of all the inputs
+* @return           Average of all the inputs
 */
 float getRGBAverage(const float red, const float green, const float blue)
 {
@@ -122,11 +107,11 @@ float getRGBAverage(const float red, const float green, const float blue)
 /**
 * Simple function to get the minimum of an RGB Pair
 *
-* @param:   red     Red value of RGB pair
-* @param:   green   Green value
-* @param:   blue    Blue value
+* @param    red     Red value of RGB pair
+* @param    green   Green value
+* @param    blue    Blue value
 *
-* @return:          Minimum of the pair
+* @return           Minimum of the pair
 */
 float getRGBMin(const float red, const float green, const float blue)
 {
@@ -139,11 +124,11 @@ float getRGBMin(const float red, const float green, const float blue)
 /**
 * Simple function to get the maximum of an RGB Pair
 *
-* @param:   red     Red value of RGB pair
-* @param:   green   Green value
-* @param:   blue    Blue value
+* @param    red     Red value of RGB pair
+* @param    green   Green value
+* @param    blue    Blue value
 *
-* @return:          Maximum of the pair
+* @return           Maximum of the pair
 */
 float getRGBMax(const float red, const float green, const float blue)
 {
@@ -156,15 +141,15 @@ float getRGBMax(const float red, const float green, const float blue)
 /**
 * Function to correctly allocate values to RGB pixels based on the hue.
 * 
-* @param:   hue         Hue of the pixel
-* @param:   primary     First RGB value (intensity * saturation)
-* @param:   secondary   Second RGB value (intensity * saturation * (1 - | mod2(hue / 60 - 1 |)
-* @param:   tertiary    Third RGB value (intensity - primary)
-* @param:   red         Red pixel
+* @param    hue         Hue of the pixel
+* @param    primary     First RGB value (intensity * saturation)
+* @param    secondary   Second RGB value (intensity * saturation * (1 - | mod2(hue / 60 - 1 |)
+* @param    tertiary    Third RGB value (intensity - primary)
+* @param    red         Red pixel
 * @param    green       Green pixel
-* @param:   blue        Blue pixel
+* @param    blue        Blue pixel
 * 
-* @return:              Modifies red, blue, and green pixels by reference
+* @return               Modifies red, blue, and green pixels by reference
 */
 void permuteColors(const float hue, const float primary, const float secondary, const float tertiary, float* red, float* green, float* blue)
 {
@@ -211,4 +196,42 @@ void permuteColors(const float hue, const float primary, const float secondary, 
     }
 
     return;
+}
+
+/**
+ * Helper function to return the max of an rgb pair as well as which element was the max.
+ * 
+ * @param  red      The red pixel value
+ * @param  green    The green pixel value
+ * @param  blue     The blue pixel value
+ * 
+ * @return          Returns a struct with data member "max_rgb" representing the max value
+ *                  and "max_color" as the index of the max (0: red, 1: green, 2: blue)
+ */
+struct rgbPacket getRGBMaxIndex(const float red, const float green, const float blue)
+{
+    // Get the minimum of the pair
+    enum color { r, g, b };
+    struct rgbPacket max_rgb_idx;
+
+    // Get the maximum of the RGB pair
+    if (red > green)
+    {
+        max_rgb_idx.max_rgb = red;
+        max_rgb_idx.max_color = r;
+    }
+
+    else
+    {
+        max_rgb_idx.max_rgb = green;
+        max_rgb_idx.max_color = g;
+    }
+
+    if (max_rgb_idx.max_rgb < blue)
+    {
+        max_rgb_idx.max_rgb = blue;
+        max_rgb_idx.max_color = b;
+    }
+
+    return max_rgb_idx;
 }

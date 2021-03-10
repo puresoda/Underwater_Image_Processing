@@ -44,8 +44,14 @@ float* applyWhiteBalance(float* image, const int num_row, const int num_col, con
 }
 
 /**
-* Implements an approximation of the Grey World Approximation. The full Grey World approximation will be implemented later.
-*/
+ * Applies a simplified implementation of the Grey World Assumption. 
+ * This function essentially normalizes each pixel by its average and multiplies by 127.5, the RGB value of grey.
+ * 
+ * @param   image       The flattened 2D image normalized between [0,1]. Note that for RGB images, apply this function on each channel individually
+ * @param   num_pixels  Number of pixels in the image
+ * 
+ * @return              Modifies the original image array with the updated values.
+ */
 void applyGreyWorld(float* image, const int num_pixels)
 {
     float scale_factor = 0;
@@ -109,6 +115,15 @@ float linearizerHelper(const float pixel)
         return (float) pow(pixel * a + b, lambda);
 }
 
+/** Applies the full Grey World Algorithm based on illuminants.
+ * 
+ * @param   image       The flattened 2D image normalized between [0,1]. Note that for RGB images, apply this function on each channel individually
+ * @param   num_pixels  Number of pixels in the image   
+ * @param   percentile  Determines the upper and lower percentile of pixel values used to calculate the illuminant. 
+ *                      For example if percentile = 20, consider pixels in the 20th and 80th percentile.
+ * 
+ * @return              Returns a newly allocated array represented the color correted image (used to be by reference but this caused sync issues)
+ */
 float* applyGreyWorldFull(float* image, const int num_pixels, const int percentile)
 {
     // Reference XYZ White Trismus Values for D65 Illuminant
@@ -194,9 +209,18 @@ float* applyGreyWorldFull(float* image, const int num_pixels, const int percenti
     return output;
 }
 
+/**
+ * Calculates the illuminant of a color channel by quantizing pixel values in a histogram (2^10 bins) and finding the average of pixels in a percentile range.
+ * 
+ * @param   image       The flattened 2D image normalized between [0,1]. Note that for RGB images, apply this function on each channel individually
+ * @param   num_pixels  Number of pixels in the image
+ * @param   percentile  Determines the upper and lower percentile of pixel values used to calculate the illuminant. 
+ *                      For example if percentile = 20, consider pixels in the 20th and 80th percentile.
+ * 
+ * @return              Returns a single floating point number representing the illuminant of that channel
+ */
 float calcIlluminant(float* image, const int num_pixels, const int percentile)
 {
-
     // Create the historgram of RGB values
     int* histogram = calloc(NUM_BINS, sizeof(int));
     int* cum_sum_forward = calloc(NUM_BINS, sizeof(int));
@@ -259,12 +283,23 @@ float calcIlluminant(float* image, const int num_pixels, const int percentile)
     free(cum_sum_backward);
     free(cum_sum_forward);
 
+    // Special cases for count = 0 to avoid infinity
     if (count == 0)
         return 0;
     else
         return (sum / count);
 }
 
+/**
+ * Helper function to loop through each color channel and calculate the illuminant of each one.
+ * 
+ * @param   image       The flattened 2D image normalized between [0,1]. Note that for RGB images, apply this function on each channel individually
+ * @param   num_pixels  Number of pixels in the image
+ * @param   percentile  Determines the upper and lower percentile of pixel values used to calculate the illuminant. 
+ *                      For example if percentile = 20, consider pixels in the 20th and 80th percentile.
+ * 
+ * @return              Returns an array of 3 illuminants. One for each color channel.
+ */
 float* calcIlluminantRGB(float* image, const int num_pixels, const int percentile)
 {
     // Since we pass this as a return value, it needs to be static... I learned this the hard way.
@@ -276,6 +311,18 @@ float* calcIlluminantRGB(float* image, const int num_pixels, const int percentil
     return illuminants;
 }
 
+/**
+ * Function to perform matrix multiplication
+ * 
+ * @param   left_mat        Left matrix to multiply
+ * @param   right_mat       Right matrix to multiply
+ * @param   left_num_row    Number of rows in the left matrix
+ * @param   left_num_col    Number of columns in the left matrix
+ * @param   right_num_row   Number of rows in the right matrix
+ * @param   right_num_col   Number of columns in the right matrix
+ * 
+ * @return                  Allocates new memory for the multiplication result of size (left_num_row x right_num_col)
+ */
 float* multiplyFlatMatrix(float* left_mat, float* right_mat, const int left_num_row, const int left_num_col, const int right_num_row, const int right_num_col)
 {
     // Allocate memory for the output and perform the multiplication
@@ -289,6 +336,20 @@ float* multiplyFlatMatrix(float* left_mat, float* right_mat, const int left_num_
 
     return output;
 }
+
+/**
+ * Function to perform matrix multiplication
+ * 
+ * @param   left_mat        Left matrix to multiply
+ * @param   right_mat       Right matrix to multiply
+ * @param   output          Memory location for where to store result
+ * @param   left_num_row    Number of rows in the left matrix
+ * @param   left_num_col    Number of columns in the left matrix
+ * @param   right_num_row   Number of rows in the right matrix
+ * @param   right_num_col   Number of columns in the right matrix
+ * 
+ * @return                  Uses allocated memory for the multiplication result of size (left_num_row x right_num_col). Returns 0 if successful, -1 if not.
+ */
 
 int multiplyFlatMatrixRef(float* left_mat, float* right_mat, float* output, const int left_num_row, const int left_num_col, const int right_num_row, const int right_num_col)
 {

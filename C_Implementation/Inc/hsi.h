@@ -4,6 +4,12 @@
 
 #include "imfunc.h"
 
+struct rgbPacket
+{
+    int max_rgb;
+    int max_color;
+};
+
 // Main Conversion Functions
 float* rgb2hsi(float* rgb_image, const int num_pixels);
 float* hsi2rgb(float* hsi, const int num_pixels);
@@ -18,4 +24,6 @@ float getRGBAverage(const float red, const float green, const float blue);
 float getRGBMin(const float red, const float green, const float blue);
 
 void permuteColors(const float hue, const float primary, const float secondary, const float tertiary, float* red, float* green, float* blue);
+struct rgbPacket getRGBMaxIndex(const float red, const float green, const float blue);
+
 #endif

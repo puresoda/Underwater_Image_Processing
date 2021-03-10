@@ -40,8 +40,18 @@ void padMatrix(float* input, float* pad_mat, const int input_num_row, const int 
     return;
 }
 
-/*
- * This function handles the convolution operation for a single filter
+/**
+ * This function handles the convolution operation for a single filter.
+ * 
+ * @param   input           The input image flattened out to 1D in column-row order. ie: left to right, top to bottom
+ * @param   filter          The fitler to convolve with the input image, also flattened
+ * @param   output          Memory location of the output
+ * @param   input_num_row   Number of rows in the input image
+ * @param   input_num_col   Number of columns in the input image
+ * @param   filter_size     The dimension of the filter (note that the filter is assumed to be square)
+ * 
+ * @return                  Assuming that enough memory was allocated to "output", this function places the result of
+ *                          conv2D(input, filter) while preserving the dimension of "input"
  */
 void convHelper(float* input, float* filter, float* output, const int input_num_row, const int input_num_col, const int filter_size)
 {
@@ -78,8 +88,16 @@ void convHelper(float* input, float* filter, float* output, const int input_num_
     return;
 }
 
-/*
- * Performs a 2D convolution given an input and filter
+/**
+ * This function handles the convolution operation for a single filter.
+ * 
+ * @param   input           The input image flattened out to 1D in column-row order. ie: left to right, top to bottom
+ * @param   filter          The fitler to convolve with the input image, also flattened
+ * @param   input_num_row   Number of rows in the input image
+ * @param   input_num_col   Number of columns in the input image
+ * @param   filter_size     The dimension of the filter (note that the filter is assumed to be square)
+ * 
+ * @return                  This function allocates memory for the result of the convolution and returns a pointer to it
  */
 float* conv2D(float* input, float* filter, const int input_num_row, const int input_num_col, const int filter_size)
 {

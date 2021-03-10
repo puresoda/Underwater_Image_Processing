@@ -1,10 +1,20 @@
 #include "../Inc/imfusion.h"
 
+/**
+ * Applies Image Fusion on a white balanced image and allocates memory for it
+ * @param   white_image     White balanced image in the range of [0,1]
+ * @param   gamma_weight    Combined laplacian, saliency, and saturation weight using the gamma corrected image
+ * @param   sharp_weight    Combined laplacian, saliency, and saturation weight using the sharpened image
+ * @param	num_row		    Number of rows in the RGB image
+ * @param	num_col		    Number of columns in the RGB image
+ * 
+ * @return                  Allocates an array with the final fused result
+ */
 float* applyFusion(float* white_image, float* gamma_weight, float* sharp_weight, const int num_row, const int num_col)
 {
+    // Calcuate constants
     const int num_pixel = num_row * num_col;
-    const int num_channel = 3;
-    const int num_rgb = num_pixel * num_channel;
+    const int num_rgb = num_pixel * NUM_CHANNELS;
 
     // Apply regularization / normalization to the weights
     normalizeFusionWeights(gamma_weight, sharp_weight, num_row, num_col);
@@ -18,27 +28,38 @@ float* applyFusion(float* white_image, float* gamma_weight, float* sharp_weight,
     return reconstructed;
 }
 
+/** 
+ * Normalizes the two weights to the fusion algorithm using fixed regularization term
+ * 
+ * @param   gamma_weight    Combined laplacian, saliency, and saturation weight using the gamma corrected image
+ * @param   sharp_weight    Combined laplacian, saliency, and saturation weight using the sharpened image
+ * @param	num_row		    Number of rows in the RGB image
+ * @param	num_col		    Number of columns in the RGB image
+ * 
+ * @return                  Performs a modified average of the gamma and sharp weights and modifies the input arrays
+ */
 void normalizeFusionWeights(float* gamma_weight, float* sharp_weight, const int num_row, const int num_col)
 {
     const int num_pixel = num_row * num_col;
-
-    // Copy the values of gamma weight since we modify them but need original values to normalize sharp_weight
-    float* temp_gamma = malloc(sizeof(float) * num_pixel);
-    for (int i = 0; i < num_pixel; i++)
-        temp_gamma[i] = gamma_weight[i];
 
     // Normalization
     // new weight = (old + regularization) / (sum(weight) + 2*regularization)
     for (int i = 0; i < num_pixel; i++)
     {
-        gamma_weight[i] = (temp_gamma[i]   + REGULARIZATION) / (sharp_weight[i] + temp_gamma[i] + 2.0f * REGULARIZATION);
-        sharp_weight[i] = (sharp_weight[i] + REGULARIZATION) / (sharp_weight[i] + temp_gamma[i] + 2.0f * REGULARIZATION);
+        gamma_weight[i] = (gamma_weight[i] + REGULARIZATION) / (sharp_weight[i] + gamma_weight[i] + 2.0f * REGULARIZATION);
+        sharp_weight[i] = (sharp_weight[i] + REGULARIZATION) / (sharp_weight[i] + gamma_weight[i] + 2.0f * REGULARIZATION);
     }
 
-    free(temp_gamma);
     return;
 }
 
+/**
+ * Wrapper function to perform all steps of image fusion
+ * 
+ * @param filename  Filename of the input bitmap
+ * 
+ * @return          Returns the reconstructed image and also writes the results to a text file.
+ */
 float* imageFusionSeqFull(char filename[])
 {
     // For timing each function

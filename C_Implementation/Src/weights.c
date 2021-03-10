@@ -1,5 +1,15 @@
 #include "../Inc/weights.h"
 
+/**
+ * Handles allocating memory for Laplacian, Saliency, and Saturation Weights as well as computing them. Also handles normalizing / combining them.
+ * 
+ * @param   input       The input image flattened out to 1D in column-row order. ie: left to right, top to bottom. Image is normalized between [0,1]
+ * @param	num_row		Number of rows in the image
+ * @param	num_col		Number of columns in the image
+ * @param	lum_option	Determines which method used to calculate luminance. 0: Standard, 1: Percieved option, 2: Percieved option exact
+ * 
+ * @return				Allocates new memory for the combined weight map.
+ */
 float* getWeights(float* image, const int num_row, const int num_col, const int lum_option)
 {
 	const int num_pixels = num_row * num_col;
@@ -62,7 +72,7 @@ float* calcLaplacianWeight(float* lum, const int num_row, const int num_col)
 *
 * @param	image		The image to get the saliency weight from
 * @param	num_row		The number of rows of the image
-* @param	num_row		The number of rows of the image
+* @param	num_col		The number of columns of the image
 
 * @return				Laplacian weight which is an array of size num_pixels.
 */

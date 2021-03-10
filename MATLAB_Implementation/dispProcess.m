@@ -1,11 +1,11 @@
 % Performs image fusion algorithm and displays all intermediate results
-REG_VAL = 0.1;  % Regularization vaue 
+REG_VAL = 0.2;  % Regularization vaue 
 NUM_INPUTS = 2;
 
 close all;
 
 % Read and show the original image
-original_img = im2double(imread("underwater.jpg"));
+original_img = im2double(imread("01.png"));
 figure; imshow(original_img); title("Original Image");
 
 % Perform the white balancing technique and show it
@@ -56,9 +56,11 @@ s_weight = s_laplace + s_saliency + s_saturation;
 figure; imshow(s_weight, []); title("Sharpened Aggregate Weight");
 
 % Normalize the aggreagated weight maps
-g_weight_temp = (g_weight + REG_VAL)./(s_weight + g_weight + NUM_INPUTS * REG_VAL);
+g_weight = g_weight / max(max(g_weight));
+s_weight = s_weight / max(max(s_weight));
+
+g_weight = (g_weight + REG_VAL)./(s_weight + g_weight + NUM_INPUTS * REG_VAL);
 s_weight = (s_weight + REG_VAL)./(s_weight + g_weight + NUM_INPUTS * REG_VAL);
-g_weight = g_weight_temp;
 
 % Naive image fusion
 
@@ -67,6 +69,7 @@ t_weight = (g_weight + s_weight);
 figure; imshow(t_weight, []); title("Total Aggregate Weight");
 
 reconstructed = t_weight.*white_img;
+reconstructed = reconstructed.^0.7;
 
 figure;
 imshowpair(original_img, reconstructed, 'montage'); title("Original vs Enhanced Image");

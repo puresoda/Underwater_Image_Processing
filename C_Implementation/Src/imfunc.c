@@ -23,13 +23,13 @@ float Q_rsqrt(float number)
     return conv.f;
 }
 
-/*
+/**
 * Calculate the average value of an image array.
 *
 * @param   image       The array to average over
 * @param   num_pixels  The number of indices to average over
 *
-* @returns:             Returns the average (sum(image) / num_pixels)
+* @returns             Returns the average (sum(image) / num_pixels)
 */
 float calcAverage(float* image, const int num_pixels)
 {
@@ -67,6 +67,15 @@ float* correctGamma(float* image, const int num_pixels, const float gamma)
     return gamma_image;
 }
 
+/**
+ * Applies Gaussian blur using a 3 x 3 kernel with a standard deviation of 0.5
+ * 
+ * @param   image           The image to be blurred (must be 2D! to do RGB, apply this function 3 times on each channel)
+ * @param	num_row		    Number of rows in the image
+ * @param	num_col		    Number of columns in the image
+ * 
+ * @return                  Allocates new memory for the resulting blurred image
+ */
 float* applyGaussianBlur(float* image, const int num_row, const int num_col)
 {
     // Convolve "image" with the blur matrix (3x3)
@@ -77,6 +86,16 @@ float* applyGaussianBlur(float* image, const int num_row, const int num_col)
     return output;
 }
 
+/**
+ * Applies Gaussian blur using a 3 x 3 kernel with a standard deviation of 0.5 by reference
+ * 
+ * @param   image           The image to be blurred (must be 2D! to do RGB, apply this function 3 times on each channel)
+ * @param   output          Memory to place the result to
+ * @param	num_row		    Number of rows in the image
+ * @param	num_col		    Number of columns in the image
+ * 
+ * @return                  Utilizes existing memory for the result
+ */
 void applyGaussianBlurRef(float* image, float* output, const int num_row, const int num_col)
 {
     // Convolve "image" with the blur matrix (3x3)
@@ -86,6 +105,15 @@ void applyGaussianBlurRef(float* image, float* output, const int num_row, const 
     return;
 }
 
+/**
+ * Applies Laplacian edge detection using a 3 x 3 kernel
+ * 
+ * @param   image           The input image (must be 2D! to do RGB, apply this function on the greyscale version)
+ * @param	num_row		    Number of rows in the image
+ * @param	num_col		    Number of columns in the image
+ * 
+ * @return                  Allocates new memory for the resulting filtered image
+ */
 float* applyLaplacian(float* image, const int num_row, const int num_col)
 {
     // Convolve "image" with the laplacian matrix (3x3)
@@ -97,14 +125,30 @@ float* applyLaplacian(float* image, const int num_row, const int num_col)
 }
 
 /**
-* Calculates the squared L2 norm given two points (x1, y1, z1) and (x2, y2, z2)
-* (x1-x2)^2 + (y1-y2)^2 + (z1-z2)^2
-*/
+ * Calcualtes the squared Euclidian Distance between two points (x1, y1, z1) and (x2, y2, z2)
+ * ie: (x1-x2)^2 + (y1-y2)^2 + (z1-z2)^2
+ * 
+ * @param   x1      Refer to the equation for the meaning
+ * @param   y1      Refer to the equation for the meaning
+ * @param   z1      Refer to the equation for the meaning
+ * @param   x2      Refer to the equation for the meaning
+ * @param   y2      Refer to the equation for the meaning
+ * @param   z2      Refer to the equation for the meaning
+ * 
+ * @return          Returns the squared Euclidian Distance: (x1-x2)^2 + (y1-y2)^2 + (z1-z2)^2
+ */
 float calcNormSquare(const float x1, const float x2, const float y1, const float y2, const float z1, const float z2)
 {
     return (x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2) + (z1 - z2) * (z1 - z2);
 }
 
+/**
+ * Handles reading an input bitmap image file and its attributes.
+ * 
+ * @param   file_name       File name of the bitmap representing the image (.txt)
+ * 
+ * @return                  Returns a structure with three memmbers: the number of rows, number of columns, pointer to the array representing the RGB image
+ */
 struct Image readImage(const char file_name[])
 {
     FILE* image_file;
@@ -115,6 +159,7 @@ struct Image readImage(const char file_name[])
     struct Image im;
     int pixel_val = 0;
     
+    // Test if the file can be opened
     errno_t err;
     if ((err = fopen_s(&image_file, file_location, "r")) != 0)
     {
@@ -148,13 +193,25 @@ struct Image readImage(const char file_name[])
     return im;
 }
 
+/**
+ * Handles writing an array to a text file. The result will be "file_name" + "_corrected.txt"
+ * 
+ * @param   file_name       Base file name of the output text file
+ * @param   image           RGB image to written
+ * @param   num_row         Number of rows in the image
+ * @param   num_col         Number of columns in the image
+ * 
+ * @return                  Returns 0 if successful, -1 otherwise.
+ */
 int writeImage(const char file_name[], float* image, const int num_row, const int num_col)
 {
+    // Build up the string containing the full filename
     FILE* image_file;
     char file_location[100] = "./";
     strcat_s(file_location, sizeof(file_location), file_name);
     strcat_s(file_location, sizeof(file_location), "_corrected.txt");
 
+    // Check if we can write to the file
     errno_t err;
     if ((err = fopen_s(&image_file, file_location, "w")) != 0)
     {
