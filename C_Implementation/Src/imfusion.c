@@ -25,7 +25,10 @@ float* applyFusion(float* white_image, float* gamma_weight, float* sharp_weight,
     for (int i = 0; i < num_rgb; i++)
         reconstructed[i] = white_image[i] * (gamma_weight[i % num_pixel] + sharp_weight[i % num_pixel]);
 
-    return reconstructed;
+    float* corrected = correctGamma(reconstructed, num_pixel, 0.7);
+    free(reconstructed);
+
+    return corrected;
 }
 
 /** 

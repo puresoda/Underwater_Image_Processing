@@ -149,9 +149,9 @@ float* applyGreyWorldFull(float* image, const int num_pixels, const int percenti
 
     // Calculate the illuminant of the linearized RGB image
     float* illuminants = calcIlluminantRGB(image, num_pixels, percentile);
-    illuminants[0] = 0.8017027977257660;
-    illuminants[1] = 1;
-    illuminants[2] = 0.642720796830038;
+    illuminants[0] = 0.689697867312801;
+    illuminants[1] = 1.0;
+    illuminants[2] = 0.844054675120857;
 
     // Calculate the cone values ie: bradford(3x3) * (x, y, z)^T
     float* source_cone = multiplyFlatMatrix(bradford, illuminants, NUM_CHANNELS, NUM_CHANNELS, NUM_CHANNELS, 1);

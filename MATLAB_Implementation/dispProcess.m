@@ -5,7 +5,7 @@ NUM_INPUTS = 2;
 close all;
 
 % Read and show the original image
-original_img = im2double(imread("01.png"));
+original_img = im2double(imread("03.png"));
 figure; imshow(original_img); title("Original Image");
 
 % Perform the white balancing technique and show it
@@ -13,7 +13,7 @@ white_img = whiteBalance(original_img, 1);
 figure; imshow(white_img); title("White Balanced Image");
 
 % Apply gamma corretion
-gamma_img = gammaCorrection(white_img, 1.4); 
+gamma_img = gammaCorrection(white_img, 1.4);
 figure; imshow(gamma_img); title("Gamma Corrected Image");
 
 % Get Laplacian weight on the gamma corrected image
